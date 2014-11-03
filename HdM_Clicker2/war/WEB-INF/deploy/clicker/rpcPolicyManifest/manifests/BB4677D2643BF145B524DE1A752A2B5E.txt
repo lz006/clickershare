@@ -1,0 +1,2 @@
+serviceClass: de.hdm.clicker.shared.Report
+path: D488E63C86B35669AEF47FA83AA6A78A.gwt.rpc

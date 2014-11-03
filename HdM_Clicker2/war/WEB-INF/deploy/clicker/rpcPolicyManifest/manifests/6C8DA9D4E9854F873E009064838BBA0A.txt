@@ -1,0 +1,2 @@
+serviceClass: de.hdm.clicker.shared.Verwaltung
+path: 3F3459A1D0033DCCAD82C391309ADFE3.gwt.rpc
