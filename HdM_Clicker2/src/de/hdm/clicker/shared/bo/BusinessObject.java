@@ -17,7 +17,7 @@ import java.io.Serializable;
  * textuelle Notation in JSON (siehe http://www.json.org/) kodiert.
  * </p>
  * 
- * @author thies (implement: Roth, Zimmermann, Klatt, Moser, Sonntag, Zanella)
+ * @author Roth, Zimmermann, Zanella
  * @version 1.0
  */
 
