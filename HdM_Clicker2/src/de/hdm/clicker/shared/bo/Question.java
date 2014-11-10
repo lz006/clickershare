@@ -27,6 +27,16 @@ public class Question extends BusinessObject {
 	private boolean image;
 	
 	private boolean active;
+	
+	private int categoryID;
+
+	public int getCategoryID() {
+		return categoryID;
+	}
+
+	public void setCategoryID(int categoryID) {
+		this.categoryID = categoryID;
+	}
 
 	public String getQuestionBody() {
 		return questionBody;

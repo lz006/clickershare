@@ -228,7 +228,7 @@ public class CategoryMapper {
 			
 			// Löschen der Questions
 			
-			// Löschen der Dozent-Entität
+			// Löschen der Category-Entität
 			String sql = "DELETE FROM Category WHERE id = '"+category.getId()+"';";
 			stmt.executeUpdate(sql);
 						

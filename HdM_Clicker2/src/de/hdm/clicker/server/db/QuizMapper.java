@@ -155,83 +155,92 @@ public class QuizMapper {
 	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
 	 */
 	
-	/*
+	
 	public Quiz insertIntoDB(Quiz quiz) throws RuntimeException {
 		Connection con = DBConnection.connection();
 		ResultSet rs;
-		if (quiz.getVersion() == 0) {
-			
-		}
+		
 		try{
-			// Ausführung des SQL-Querys	
+			
+			// Ausführung des SQL-Querys
 			Statement stmt = con.createStatement();
-			String sql = "INSERT INTO Quiz (`user`, `password`, `firstname`, `name`) VALUES ('"+lecturer.getUser()+"', '"+lecturer.getPassword()+"', '"+lecturer.getFirstName()+"', '"+lecturer.getName()+"');";
+			
+			// Auslesen der nach einfügen eines neuen Lecturers in DB entstandenen "größten" ID
+			String sql = "SELECT MAX(id) AS maxid FROM Quiz;";
+			rs = stmt.executeQuery(sql);
+			
+			sql = "INSERT INTO Quiz (`id`, `password`, `buttonduration`, `version`, `description`, `lecturerid`, `questionduration`, `solvingnumber`) "
+					+ "VALUES ('"+(rs.getInt("maxid") + 1)+"', '"+quiz.getPassword()+"', '"+quiz.getDurationButton()+"', '"+quiz.getVersion()+"', '"+quiz.getDescription()+"', '"
+					+quiz.getLecturerID()+"', '"+quiz.getDurationQuestion()+"', '"+quiz.getNeed2SS()+"');";
 			stmt.executeUpdate(sql);
 			
 			// Auslesen der nach einfügen eines neuen Lecturers in DB entstandenen "größten" ID
-			sql = "SELECT MAX(ID) AS maxid FROM Lecturer;";
+			sql = "SELECT MAX(id) AS maxid FROM Quiz;";
 			rs = stmt.executeQuery(sql);
 			
 			// Setzen der ID dem hier aktuellen Semesterverband-Objekt
 			while(rs.next()){
-				lecturer.setId(rs.getInt("maxid"));
+				quiz.setId(rs.getInt("maxid") + 1);
 			}
 					
 		}
 		catch (SQLException e1) {
-			throw new RuntimeException("Datenbankbankproblem: " + e1.getMessage());
+			throw new RuntimeException("Datenbankbankproblem - quizm insert: " + e1.getMessage());
 		}
 		
-		return lecturer;
+		return quiz;
 	}
-	*/
+	
 	/**
-	 * Methode um alle Lecturer aus der DB auszulesen
+	 * Methode um alle Quizzes aus der DB auszulesen
 	 * 
-	 * @return	Vector mit Lecturer
+	 * @return	Vector mit Quizzes
 	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
 	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
 	 */	
-	public Vector<Lecturer> findAll() throws RuntimeException {
+	public Vector<Quiz> findAll() throws RuntimeException {
 				
 		Connection con = DBConnection.connection();
 		
-		Vector<Lecturer> lecturers = new Vector<Lecturer>();
+		Vector<Quiz> quizzes = new Vector<Quiz>();
 		
 		try{		
 			// Ausführung des SQL-Querys
 			Statement stmt = con.createStatement();
-			String sql = "SELECT * FROM Lecturer ORDER BY name;";
+			String sql = "SELECT * FROM Quiz ORDER BY description;";
 			ResultSet rs = stmt.executeQuery(sql);
 			
 			while(rs.next()) {
-				Lecturer lecturer = new Lecturer();
-				lecturer.setId(rs.getInt("ID"));
-				lecturer.setUser(rs.getString("user"));
-				lecturer.setPassword(rs.getString("password"));
-				lecturer.setFirstName(rs.getString("firstname"));
-				lecturer.setName(rs.getString("name"));
-				lecturers.add(lecturer);   
+				Quiz quiz = new Quiz();
+				quiz.setId(rs.getInt("id"));
+				quiz.setPassword(rs.getString("password"));
+				quiz.setDurationButton(rs.getInt("buttonduration"));
+				quiz.setVersion(rs.getInt("version"));
+				quiz.setDescription(rs.getString("description"));
+				quiz.setLecturerID(rs.getInt("lecturerid"));
+				quiz.setDurationQuestion(rs.getInt("questionduration"));
+				quiz.setNeed2SS(rs.getInt("solvingnumber"));
+				quizzes.add(quiz);  
 			}
 			
 		}
 		catch (SQLException e1) {
-			throw new RuntimeException("Datenbankbankproblem - dm fa: " + e1.getMessage());		
+			throw new RuntimeException("Datenbankbankproblem - quizm fa: " + e1.getMessage());		
 		}
 		
 				
-		return lecturers;
+		return quizzes;
 			
 	}
 	
 	/**
-	 * Methode um einen Lecturer aus der DB zu löschen
+	 * Methode um ein Quiz aus der DB zu löschen
 	 * 
-	 * @param	lecturer - Objekt welches gelöscht werden soll
+	 * @param	quiz - Objekt welches gelöscht werden soll
 	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
 	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
 	 */
-	public void delete(Lecturer lecturer) throws RuntimeException {
+	public void delete(Quiz quiz) throws RuntimeException {
 		
 		/* Das Löschen eines Lecturers hat das Löschen aller mit ihm
 		 * in verbindungstehender Categories und Quizzes zur Folge
@@ -242,17 +251,17 @@ public class QuizMapper {
 		try {
 			Statement stmt = con.createStatement();
 			
-			// Löschen der Categories
+			// Löschen der Results
 			
-			// Löschen der Quizze
+			// Löschen der NMTable_QQ
 			
-			// Löschen Löschen der Dozent-Entität
-			String sql = "DELETE FROM Lecturer WHERE ID = '"+lecturer.getId()+"';";
+			// Löschen Löschen der Quiz-Entität
+			String sql = "DELETE FROM Quiz WHERE ID = '"+quiz.getId()+"';";
 			stmt.executeUpdate(sql);
 						
 		}
 		catch (SQLException e1) {
-			throw new RuntimeException("Datenbankbankproblem - lm.delete: " + e1.getMessage());
+			throw new RuntimeException("Datenbankbankproblem - quizm.delete: " + e1.getMessage());
 		}
 		
 	}

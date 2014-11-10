@@ -235,7 +235,7 @@ public class LecturerMapper {
 			
 			// Löschen der Quizze
 			
-			// Löschen Löschen der Dozent-Entität
+			// Löschen Löschen der Lecturer-Entität
 			String sql = "DELETE FROM Lecturer WHERE id = '"+lecturer.getId()+"';";
 			stmt.executeUpdate(sql);
 						
