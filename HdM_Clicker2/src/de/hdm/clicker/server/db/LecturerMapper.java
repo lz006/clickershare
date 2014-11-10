@@ -91,13 +91,13 @@ public class LecturerMapper {
 		try{
 			// Ausführung des SQL-Querys
 			Statement stmt = con.createStatement();
-			String sql = "SELECT * FROM Lecturer WHERE ID IN (" + ids.toString() + ") ORDER BY name";
+			String sql = "SELECT * FROM Lecturer WHERE id IN (" + ids.toString() + ") ORDER BY name";
 			rs = stmt.executeQuery(sql);
 			
 			// Erstellung des "Lecturer-Vectors"
 			while(rs.next()){
 				Lecturer lecturer = new Lecturer();
-				lecturer.setId(rs.getInt("ID"));
+				lecturer.setId(rs.getInt("id"));
 				lecturer.setUser(rs.getString("user"));
 				lecturer.setPassword(rs.getString("password"));
 				lecturer.setFirstName(rs.getString("firstname"));
@@ -128,7 +128,7 @@ public class LecturerMapper {
 		try{
 			// Ausführung des SQL-Querys
 			Statement stmt = con.createStatement();
-			String sql = "UPDATE Lecturer SET user='"+lecturer.getUser()+"', password='"+lecturer.getPassword()+"', firstname='"+lecturer.getFirstName()+"', name='"+lecturer.getName()+"' WHERE ID="+lecturer.getId()+";";
+			String sql = "UPDATE Lecturer SET user='"+lecturer.getUser()+"', password='"+lecturer.getPassword()+"', firstname='"+lecturer.getFirstName()+"', name='"+lecturer.getName()+"' WHERE id="+lecturer.getId()+";";
 			stmt.executeUpdate(sql);
 			
 		}
@@ -195,7 +195,7 @@ public class LecturerMapper {
 			
 			while(rs.next()) {
 				Lecturer lecturer = new Lecturer();
-				lecturer.setId(rs.getInt("ID"));
+				lecturer.setId(rs.getInt("id"));
 				lecturer.setUser(rs.getString("user"));
 				lecturer.setPassword(rs.getString("password"));
 				lecturer.setFirstName(rs.getString("firstname"));
@@ -205,7 +205,7 @@ public class LecturerMapper {
 			
 		}
 		catch (SQLException e1) {
-			throw new RuntimeException("Datenbankbankproblem - dm fa: " + e1.getMessage());		
+			throw new RuntimeException("Datenbankbankproblem - lm fa: " + e1.getMessage());		
 		}
 		
 				
@@ -236,7 +236,7 @@ public class LecturerMapper {
 			// Löschen der Quizze
 			
 			// Löschen Löschen der Dozent-Entität
-			String sql = "DELETE FROM Lecturer WHERE ID = '"+lecturer.getId()+"';";
+			String sql = "DELETE FROM Lecturer WHERE id = '"+lecturer.getId()+"';";
 			stmt.executeUpdate(sql);
 						
 		}

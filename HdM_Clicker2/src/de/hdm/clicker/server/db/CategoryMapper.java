@@ -97,7 +97,7 @@ public class CategoryMapper {
 			// Erstellung des "Lecturer-Vectors"
 			while(rs.next()){
 				Category category = new Category();
-				category.setId(rs.getInt("ID"));
+				category.setId(rs.getInt("id"));
 				category.setDescription(rs.getString("description"));
 				category.setLecturerID(rs.getInt("lecturerid"));
 			}
@@ -125,7 +125,7 @@ public class CategoryMapper {
 		try{
 			// Ausführung des SQL-Querys
 			Statement stmt = con.createStatement();
-			String sql = "UPDATE Category SET description='"+category.getDescription()+"', lecturerid='"+category.getLecturerID()+"' WHERE ID="+category.getId()+";";
+			String sql = "UPDATE Category SET description='"+category.getDescription()+"', lecturerid='"+category.getLecturerID()+"' WHERE id="+category.getId()+";";
 			stmt.executeUpdate(sql);
 			
 		}
@@ -192,7 +192,7 @@ public class CategoryMapper {
 			
 			while(rs.next()) {
 				Category category = new Category();
-				category.setId(rs.getInt("ID"));
+				category.setId(rs.getInt("id"));
 				category.setDescription(rs.getString("description"));
 				category.setLecturerID(rs.getInt("lecturerid"));
 				categories.add(category);
@@ -229,7 +229,7 @@ public class CategoryMapper {
 			// Löschen der Questions
 			
 			// Löschen der Dozent-Entität
-			String sql = "DELETE FROM Category WHERE ID = '"+category.getId()+"';";
+			String sql = "DELETE FROM Category WHERE id = '"+category.getId()+"';";
 			stmt.executeUpdate(sql);
 						
 		}

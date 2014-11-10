@@ -13,7 +13,8 @@ import java.util.Date;
 
 public class Quiz extends BusinessObject {
 
-	private int version;
+	// Initialwert ist "0"...
+	private int version = 0;
 	
 	private Date startDate;
 	
