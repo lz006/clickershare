@@ -154,6 +154,8 @@ public class QuizMapper {
 	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
 	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
 	 */
+	
+	/*
 	public Quiz insertIntoDB(Quiz quiz) throws RuntimeException {
 		Connection con = DBConnection.connection();
 		ResultSet rs;
@@ -182,7 +184,7 @@ public class QuizMapper {
 		
 		return lecturer;
 	}
-	
+	*/
 	/**
 	 * Methode um alle Lecturer aus der DB auszulesen
 	 * 
