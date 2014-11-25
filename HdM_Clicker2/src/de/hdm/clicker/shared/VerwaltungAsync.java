@@ -6,7 +6,9 @@ import java.util.Vector;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 import de.hdm.clicker.shared.bo.Belegung;
+import de.hdm.clicker.shared.bo.Category;
 import de.hdm.clicker.shared.bo.Dozent;
+import de.hdm.clicker.shared.bo.Lecturer;
 import de.hdm.clicker.shared.bo.Lehrveranstaltung;
 import de.hdm.clicker.shared.bo.Raum;
 import de.hdm.clicker.shared.bo.Semesterverband;
@@ -23,10 +25,48 @@ public interface VerwaltungAsync {
 		
 	/*
 	 * ***********************************************************************************************
-	 * ABSCHNITT, Beginn: Methoden um dem Client die geforderten BusinessObjects zu übermitteln
+	 * ABSCHNITT, Beginn: Services für den Admin
 	 * ***********************************************************************************************
 	 */
+	void auslesenAlleLecturer(AsyncCallback<Vector<Lecturer>> callback) throws RuntimeException;
+	
+	void auslesenLecturer(Lecturer lecturer, AsyncCallback<Vector<Lecturer>> callback) throws RuntimeException;
+	
+	void aendernLecturer(Lecturer lecturer, AsyncCallback<Lecturer> callback) throws RuntimeException;
+	
+	void loeschenLecturer(Lecturer lecturer, AsyncCallback<Void> callback) throws RuntimeException;
+	
+	void anlegenLecturer(String user, String password, String firstName, String name, AsyncCallback<Lecturer> callback) throws RuntimeException;
+	
+	void adminAuthenticate(String password, AsyncCallback<Boolean> callback) throws RuntimeException;
+		
+	/*
+	 * ***********************************************************************************************
+	 * ABSCHNITT, Ende: Services für den Admin
+	 * ***********************************************************************************************
+	 */
+	
+	/*
+	 * ***********************************************************************************************
+	 * ABSCHNITT, Beginn: Services für den Lecturer
+	 * ***********************************************************************************************
+	 */
+	
+	void lecturerAuthenticate(String user, String password, AsyncCallback<Boolean> callback) throws RuntimeException;
+	
+	void getSignedLecturer(AsyncCallback<Lecturer> callback) throws RuntimeException;
+	
+	void aendernCategory(Category category, AsyncCallback<Category> callback) throws RuntimeException;
+	
+	void auslesenCategory(Category category, AsyncCallback<Vector<Category>> callback) throws RuntimeException;	
 
+	void auslesenAlleCategories(AsyncCallback<Vector<Category>> callback) throws RuntimeException;
+	
+	void loeschenCategory(Category category, AsyncCallback<Void> callback) throws RuntimeException;
+	
+	void anlegenCategory(String description, AsyncCallback<Category> callback) throws RuntimeException;
+	
+	
 	void auslesenAlleSemesterverbaende(AsyncCallback<Vector<Semesterverband>> callback) throws RuntimeException;
 	
 	void auslesenSemesterverbaendeNachStudiengang(Studiengang sg, AsyncCallback<Vector<Semesterverband>> callback) throws RuntimeException;

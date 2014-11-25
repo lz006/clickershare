@@ -7,18 +7,28 @@ import com.google.gwt.core.shared.GWT;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.logical.shared.ResizeEvent;
+import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.user.cellview.client.CellTree;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HasAlignment;
+import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+
 import de.hdm.clicker.shared.*;
 
 /**
@@ -37,16 +47,17 @@ public class Clicker implements EntryPoint {
 	
 	/**
 	 * CellTree welcher dauerhaft auf der linken Seite der Benutzeroberfläche
-	 * dem User zur Navigation durch die Funktionen des "Stundentools2" dient
+	 * dem User zur Navigation dient
 	 */
 	private CellTree cellTree;
 	
 	/**
-	 * Klasse welche das TreeViewModel-Interface implementiert. Diese Referenz
+	 * Klassen welche das TreeViewModel-Interface implementiert. Diese Referenz
 	 * wird benötigt um Zugriff auf deren Methoden zu bekommen. Zusätzlich wird
 	 * ein solches Objekt vom CellTree-Knostruktur als Argument verlangt
 	 */
-	private CustomTreeViewModel dtvm;
+	private AdminTreeViewModel atvm;
+	private LecturerTreeViewModel ltvm;
 	
 	/**
 	 * Panel welches den gesamten Bildschirm in verschiedene Bereiche einteilt
@@ -116,56 +127,32 @@ public class Clicker implements EntryPoint {
 	private VerticalPanel untenInfoPanel;
 	
 	/**
+	 * Dialogbox zur Admin- und Lecturerauthentifizierung mit den zugehörigen Widgets
+	 */
+	private DialogBox authDB;
+	private Grid authDBGrid;
+	private VerticalPanel authDBVP;
+	private Label authDBUserLabel;
+	private TextBox authDBUserTB;
+	private Label authDBPWLabel;
+	private PasswordTextBox authDBPWTB;
+	private Button authDBButton;
+	private Button authDBCloseButton;
+	private Label authDBLabel;
+	
+	/**
 	 * Label welches beim Start der Applikation den Arbeitsbereich der 
 	 * Benutzeroberfläche mit einem "Willkommenstext" versieht
 	 */
 	private Label welcomeLabel;
 
 	/**
-	 * Referenz auf das Formular für einen Dozenten
+	 * Referenz auf das Formular für einen Lecturer
 	 */
-	private DozentForm dF;
+	private LecturerForm lF;
+	private CategoryForm cF;
 	
-	/**
-	 * Referenz auf das Formular für eine Belegung
-	 */
-	private BelegungForm bF;
 	
-	/**
-	 * Referenz auf das Formular für eine Lehrveranstaltung
-	 */
-	private LehrveranstaltungForm lF;
-	
-	/**
-	 * Referenz auf das Formular für einen Studiengang
-	 */
-	private StudiengangForm sgF;
-	
-	/**
-	 * Referenz auf das Formular für einen Semesterverband
-	 */
-	private SemesterverbandForm svF;
-	
-	/**
-	 * Referenz auf das Formular für einen Raum
-	 */
-	private RaumForm rF;
-
-	/**
-	 * Referenz auf die Ausgabe-Maske für Studentenpläne
-	 */
-	private StudentenPlanForm spF;
-	
-	/**
-	 * Referenz auf die Ausgabe-Maske für Dozentenpläne
-	 */
-	private DozentenPlanForm dpF;
-	
-	/**
-	 * Referenz auf die Ausgabe-Maske für Raumpläne
-	 */
-	private RaumPlanForm rpF;
-
 	/**
 	 * Panel welches die Plattform für die jeweiligen Formulare bietet,
 	 * also der Arbeitsbereich. Das es evtl. bei kleineren Bildschirmen
@@ -199,7 +186,28 @@ public class Clicker implements EntryPoint {
 	 * Flag zur Bestimmung ob die InfoPanel sichtbar sind (sichtbar = true / nicht sichtbar = false)
 	 */
 	boolean check2 = false;
-
+	
+	/**
+	 * Wurzel aller Layout-Panels
+	 */
+	RootLayoutPanel rlp;
+	
+	/**
+	 * Buttons für die Rollenbestimmung des Users
+	 */
+	Button entryParticipantButton;
+	Button entryLecturerButton;
+	Button entryAdminButton;
+	
+	/**
+	 * Panel für die Rollenbestimmung
+	 */
+	VerticalPanel entryVP;
+	
+	/**
+	 * Grid für die Buttons zur Rollenbestimmung
+	 */
+	
 	/**
 	   * Da diese Klasse die Implementierung des Interface <code>EntryPoint</code>
 	   * zusichert, benötigen wir eine Methode
@@ -207,7 +215,60 @@ public class Clicker implements EntryPoint {
 	   * <code>main()</code>-Methode normaler Java-Applikationen.
 	   */
 	public void onModuleLoad() {
-
+		
+		mainPanel = new ScrollPanel();
+		
+		// Initialisierung der Buttons zur Rollenbestimmung
+		entryParticipantButton = new Button("Teilnehmer");
+		entryLecturerButton = new Button("Lehrende");
+		entryAdminButton = new Button("Admin");
+		addClickHandlerToEAB();
+		addClickHandlerToELB();
+		
+		// Größe der Buttons definieren
+		entryParticipantButton.setHeight("100px");
+		entryParticipantButton.setWidth("400px");
+		entryLecturerButton.setHeight("100px");
+		entryLecturerButton.setWidth("400px");
+		entryAdminButton.setHeight("100px");
+		entryAdminButton.setWidth("400px");
+		
+		// Setzen von Style-Attributen zu den EntryButtons
+		entryParticipantButton.getElement().getStyle().setFontSize(15, Unit.PT);
+		entryLecturerButton.getElement().getStyle().setFontSize(15, Unit.PT);
+		entryAdminButton.getElement().getStyle().setFontSize(15, Unit.PT);
+		
+		entryParticipantButton.getElement().getStyle().setMarginTop(10, Unit.PX);
+		entryParticipantButton.getElement().getStyle().setMarginBottom(10, Unit.PX);
+		
+		entryLecturerButton.getElement().getStyle().setMarginTop(10, Unit.PX);
+		entryLecturerButton.getElement().getStyle().setMarginBottom(10, Unit.PX);
+		
+		entryAdminButton.getElement().getStyle().setMarginTop(10, Unit.PX);
+		entryAdminButton.getElement().getStyle().setMarginBottom(10, Unit.PX);
+		
+		/*
+		 * Initialisieren des VP welches die Button zur Rollenbestimmung aufnimmt
+		 */		
+		entryVP = new VerticalPanel();
+		entryVP.add(entryParticipantButton);
+		entryVP.add(entryLecturerButton);
+		entryVP.add(entryAdminButton);
+		
+		RootPanel.get().add(entryVP);
+		RootPanel.get().setWidgetPosition(entryVP, (Window.getClientWidth() / 2) - (entryVP.getOffsetWidth() / 2), (Window.getClientHeight() / 2) - (entryVP.getOffsetHeight() / 2));
+		
+		Window.addResizeHandler(new ResizeHandler() {
+			
+			@Override
+			public void onResize(ResizeEvent event) {
+				RootPanel.get().setWidgetPosition(entryVP, (Window.getClientWidth() / 2) - (entryVP.getOffsetWidth() / 2), (Window.getClientHeight() / 2) - (entryVP.getOffsetHeight() / 2));
+				
+			}
+		});
+	}
+	
+	public void oldInit() {
 		// Initialisieren des Buttons zum ein- und ausblenden des CellTrees
 		visibilityTreeButton = new Button("Navigation ausblenden");
 		
@@ -228,7 +289,7 @@ public class Clicker implements EntryPoint {
 				
 			}
 		});
-
+		
 		// Anrodnen der Buttons
 		buttonGrid = new Grid(1, 2);
 		buttonGrid.setWidget(0, 0, visibilityTreeButton);
@@ -278,19 +339,19 @@ public class Clicker implements EntryPoint {
 		mainPanel.add(welcomeLabel);
 		
 		// Initialisierung eines Objekts vom Typ "TreeViewModel"
-		dtvm = new CustomTreeViewModel(verwaltung);
+		atvm = new AdminTreeViewModel(verwaltung);
 		
 		// Initialisierung des CellTrees
-		cellTree = new CellTree(dtvm, "Root");
+		cellTree = new CellTree(atvm, "Root");
 		
 		// Anordnen des CellTrees
 		navi.add(cellTree);
 		
 		// Setzen einer Referenz auf die "RootNode" in die "TreeViewModel-Instanz"
-		dtvm.setRootNode(cellTree.getRootTreeNode());
+		atvm.setRootNode(cellTree.getRootTreeNode());
 		
 		// Setzen einer Referenz auf den CellTree in die "TreeViewModel-Instanz"
-		dtvm.setCellTree(cellTree);
+		atvm.setCellTree(cellTree);
 
 		// Initialisierung eines Image-Objekts
 		image = new Image();
@@ -357,9 +418,6 @@ public class Clicker implements EntryPoint {
 		traeger.add(left);
 		traeger.add(right);
 
-		// Initialisierung eines DockLayoutPanels
-		p = new DockLayoutPanel(Unit.EM);
-		
 		// Panel den Kopfbereich zuweisen
 		p.addNorth(traeger, 5);
 		
@@ -400,7 +458,7 @@ public class Clicker implements EntryPoint {
 		 *   Erzeugen eines LayoutPanels, welches die Wurzel
 		 *   aller LayoutPanles darstellt
 		 */
-		RootLayoutPanel rlp = RootLayoutPanel.get();
+		rlp = RootLayoutPanel.get();
 		
 		// Dem RootLayoutPanel das DockLayoutPanel unterordnen
 		rlp.add(p);
@@ -409,7 +467,7 @@ public class Clicker implements EntryPoint {
 		RootPanel.get().add(rlp);
 
 		// Setzen einer Selbst-Referenz zur "TreeViewModel-Instanz"
-		dtvm.setStundenplantool2(this);
+		atvm.setClicker(this);
 		
 		/*
 		 *  Registrieren eines ClosingHandlers, damit beim schließen des 
@@ -430,6 +488,15 @@ public class Clicker implements EntryPoint {
 				});
 			}
 			
+		});
+		
+		Window.addResizeHandler(new ResizeHandler() {
+			
+			@Override
+			public void onResize(ResizeEvent event) {
+				RootPanel.get().setWidgetPosition(entryVP, (Window.getClientWidth() / 2) - (entryVP.getOffsetWidth() / 2), (Window.getClientHeight() / 2) - (entryVP.getOffsetHeight() / 2));
+				
+			}
 		});
 
 	}
@@ -471,108 +538,25 @@ public class Clicker implements EntryPoint {
 	}
 
 	/**
-	 * Methode welche das Dozent-Formular in den Hauptbereich läd
+	 * Methode welche das Lecturer-Formular in den Hauptbereich läd
 	 */
-	public void setDozentFormToMain() {
-		dF = new DozentForm(verwaltung);
-		dtvm.setDozentForm(dF);
-		mainPanel.clear();
-		mainPanel.add(dF);
-	}
-
-	/**
-	 * Methode welche das Belegung-Formular in den Hauptbereich läd
-	 */
-	public void setBelegungFormToMain() {
-		bF = new BelegungForm(verwaltung);
-		dtvm.setBelegungForm(bF);
-		mainPanel.clear();
-		mainPanel.add(bF);
-	}
-
-	/**
-	 * Methode welche das Lehrveranstaltung-Formular in den Hauptbereich läd
-	 */
-	public void setLehrveranstaltungFormToMain() {
-		lF = new LehrveranstaltungForm(verwaltung);
-		dtvm.setLehrveranstaltungForm(lF);
+	public void setLecturerFormToMain() {
+		lF = new LecturerForm(verwaltung);
+		ltvm.setLecturerForm(lF);	
+		
 		mainPanel.clear();
 		mainPanel.add(lF);
 	}
-
+	
 	/**
-	 * Methode welche das Studiengang-Formular in den Hauptbereich läd
+	 * Methode welche das Category-Formular in den Hauptbereich läd
 	 */
-	public void setStudiengangFormToMain() {
-		sgF = new StudiengangForm(verwaltung);
-		dtvm.setStudiengangForm(sgF);
-		mainPanel.clear();
-		mainPanel.add(sgF);
-	}
-
-	/**
-	 * Methode welche das Semesterverband-Formular in den Hauptbereich läd
-	 */
-	public void setSemesterverbandFormToMain() {
-		svF = new SemesterverbandForm(verwaltung);
-		dtvm.setSemesterverbandForm(svF);
-		mainPanel.clear();
-		mainPanel.add(svF);
-	}
-
-	/**
-	 * Methode welche das Raum-Formular in den Hauptbereich läd
-	 */
-	public void setRaumFormToMain() {
-		rF = new RaumForm(verwaltung);
-		dtvm.setRaumForm(rF);
-		mainPanel.clear();
-		mainPanel.add(rF);
-	}
-
-	/**
-	 * Methode welche das StudentenPlan-Formular in den Hauptbereich läd
-	 */
-	public void setStudentenPlanFormToMain() {
-		spF = new StudentenPlanForm(report);
-		mainPanel.clear();
-		mainPanel.add(spF);
+	public void setCategoryFormToMain() {
+		cF = new CategoryForm(verwaltung);
+		ltvm.setCategoryForm(cF);	
 		
-		p.setWidgetHidden(traegerInfoPanel, true);
-		visibilityInfoPanelsButton.setText("Infotext einblenden");
-		check2 = true;
-		
-		visibilityInfoPanelsButton.setVisible(false);
-	}
-
-	/**
-	 * Methode welche das DozentenPlan-Formular in den Hauptbereich läd
-	 */
-	public void setDozentenPlanFormToMain() {
-		dpF = new DozentenPlanForm(report);
 		mainPanel.clear();
-		mainPanel.add(dpF);
-		
-		p.setWidgetHidden(traegerInfoPanel, true);
-		visibilityInfoPanelsButton.setText("Infotext einblenden");
-		check2 = true;
-		
-		visibilityInfoPanelsButton.setVisible(false);
-	}
-
-	/**
-	 * Methode welche das RaumPlan-Formular in den Hauptbereich läd
-	 */
-	public void setRaumPlanFormToMain() {
-		rpF = new RaumPlanForm(report);
-		mainPanel.clear();
-		mainPanel.add(rpF);
-		
-		p.setWidgetHidden(traegerInfoPanel, true);
-		visibilityInfoPanelsButton.setText("Infotext einblenden");
-		check2 = true;
-		
-		visibilityInfoPanelsButton.setVisible(false);
+		mainPanel.add(cF);
 	}
 
 	/**
@@ -622,6 +606,260 @@ public class Clicker implements EntryPoint {
 	 */
 	public CellTree getCellTree() {
 		return cellTree;
+	}
+	
+	public void addClickHandlerToEAB() {
+				
+		entryAdminButton.addClickHandler(new ClickHandler() {
+
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				entryVP.setVisible(false);
+				
+				authDB = new DialogBox();
+				authDB.setText("Adminauthentifizierung!");
+				authDB.setAnimationEnabled(true);
+				
+				authDBVP = new VerticalPanel();
+				authDBGrid = new Grid(2,3);
+				authDBVP.add(authDBGrid);
+				
+				authDBPWLabel = new Label("Passwort: ");
+				authDBPWTB = new PasswordTextBox();
+				authDBButton = new Button("OK");
+				
+				authDBGrid.setWidget(0, 0, authDBPWLabel);
+				authDBGrid.setWidget(0, 1, authDBPWTB);
+				authDBGrid.setWidget(0, 2, authDBButton);
+				
+				authDBLabel = new Label();
+				authDBVP.add(authDBLabel);
+				
+				authDB.setWidget(authDBVP);
+				
+				authDB.center();
+				authDBPWTB.setFocus(true);
+				
+				addClickHandlerToADBButton();
+				
+				authDBCloseButton = new Button("Close");
+				authDBCloseButton.addClickHandler(new ClickHandler() {
+
+					@Override
+					public void onClick(ClickEvent event) {
+						authDB.hide();
+						entryVP.setVisible(true);
+					}
+					
+				});
+				authDBGrid.setWidget(1, 0, authDBCloseButton);
+			}
+			
+		});
+	}
+	
+	public void addClickHandlerToADBButton() {
+		authDBButton.addClickHandler(new ClickHandler() {
+
+			@Override
+			public void onClick(ClickEvent event) {
+				authDBButton.setEnabled(false);
+				authDBPWTB.setEnabled(false);
+				
+				verwaltung.adminAuthenticate(authDBPWTB.getText(), new AsyncCallback<Boolean>() {
+
+					@Override
+					public void onFailure(Throwable caught) {
+						authDBPWTB.setText("");
+						authDBLabel.setText(caught.getMessage());
+						
+						authDBButton.setEnabled(true);
+						authDBPWTB.setEnabled(true);
+					}
+
+					@Override
+					public void onSuccess(Boolean result) {
+						authDBPWTB.setText("");
+						authDB.hide();
+						
+						// Initialisieren des DockLayoutPanels
+						createDockLayoutPanel();
+						
+						// Initialisierung eines Objekts vom Typ "TreeViewModel"
+						atvm = new AdminTreeViewModel(verwaltung);
+						
+						// Setzen einer Selbst-Referenz zur "TreeViewModel-Instanz"
+						atvm.setClicker(Clicker.this);
+								
+						// Initialisierung des CellTrees
+						cellTree = new CellTree(atvm, "Root");
+						
+						// Anordnen des CellTrees
+						navi.add(cellTree);
+						
+						// Navigationsbereich einblenden
+						p.setWidgetHidden(navi, false);
+						
+						// Clearen des FlowPanels, welches die EntryButtons beihaltet hat
+						entryVP.clear();
+						
+						// DockLayOutPanel dem Body-html-Tag zuweisen
+						RootPanel.get().add(rlp);
+						
+					}
+					
+				});
+				
+			}
+			
+		});
+	}
+	
+	public void addClickHandlerToELB() {
+		entryLecturerButton.addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				entryVP.setVisible(false);
+				
+				authDB = new DialogBox();
+				authDB.setText("Lehrender-Authentifizierung!");
+				authDB.setAnimationEnabled(true);
+				
+				authDBVP = new VerticalPanel();
+				authDBGrid = new Grid(3,3);
+				authDBVP.add(authDBGrid);
+				
+				authDBUserLabel = new Label("User: ");
+				authDBUserTB = new TextBox();
+				authDBPWLabel = new Label("Passwort: ");
+				authDBPWTB = new PasswordTextBox();
+				authDBButton = new Button("OK");
+				
+				authDBGrid.setWidget(0, 0, authDBUserLabel);
+				authDBGrid.setWidget(0, 1, authDBUserTB);
+				authDBGrid.setWidget(1, 0, authDBPWLabel);
+				authDBGrid.setWidget(1, 1, authDBPWTB);
+				authDBGrid.setWidget(1, 2, authDBButton);
+				
+				authDBLabel = new Label();
+				authDBVP.add(authDBLabel);
+				
+				authDB.setWidget(authDBVP);
+				
+				authDB.center();
+				authDBPWTB.setFocus(true);
+				
+				addClickHandlerToLDBButton();
+				
+				authDBCloseButton = new Button("Close");
+				authDBCloseButton.addClickHandler(new ClickHandler() {
+
+					@Override
+					public void onClick(ClickEvent event) {
+						authDB.hide();
+						entryVP.setVisible(true);
+					}
+					
+				});
+				authDBGrid.setWidget(2, 0, authDBCloseButton);
+			}
+			
+		});
+	}
+	
+	public void addClickHandlerToLDBButton() {
+		authDBButton.addClickHandler(new ClickHandler() {
+
+			@Override
+			public void onClick(ClickEvent event) {
+				authDBUserTB.setEnabled(false);
+				authDBButton.setEnabled(false);
+				authDBPWTB.setEnabled(false);
+				
+				verwaltung.lecturerAuthenticate(authDBUserTB.getText(), authDBPWTB.getText(), new AsyncCallback<Boolean>() {
+
+					@Override
+					public void onFailure(Throwable caught) {
+						authDBUserTB.setText("");
+						authDBPWTB.setText("");
+						authDBLabel.setText(caught.getMessage());
+						
+						authDBUserTB.setEnabled(true);
+						authDBButton.setEnabled(true);
+						authDBPWTB.setEnabled(true);
+					}
+
+					@Override
+					public void onSuccess(Boolean result) {
+						authDBUserTB.setText("");
+						authDBPWTB.setText("");
+						authDB.hide();
+						
+						// Initialisieren des DockLayoutPanels
+						createDockLayoutPanel();
+						
+						// Initialisierung eines Objekts vom Typ "TreeViewModel"
+						ltvm = new LecturerTreeViewModel(verwaltung, report);
+						
+						// Setzen einer Selbst-Referenz zur "TreeViewModel-Instanz"
+						ltvm.setClicker(Clicker.this);
+								
+						// Initialisierung des CellTrees
+						cellTree = new CellTree(ltvm, "Root");
+						
+						// Anordnen des CellTrees
+						navi.add(cellTree);
+						
+						// Navigationsbereich einblenden
+						p.setWidgetHidden(navi, false);
+						
+						// Clearen des FlowPanels, welches die EntryButtons beihaltet hat
+						entryVP.clear();
+						
+						// DockLayOutPanel dem Body-html-Tag zuweisen
+						RootPanel.get().add(rlp);
+						
+					}
+					
+				});
+				
+			}
+			
+		});
+	}
+	
+	public void createDockLayoutPanel() {
+		// Initialisierung eines DockLayoutPanels
+		p = new DockLayoutPanel(Unit.EM);
+				
+		// Initialisierung des Panels, welches den CellTree aufnimmt 
+		navi = new ScrollPanel();
+		// Panel den linken Bildschirmbereich zuweisen und zunächst verbergen
+		p.addWest(navi, 25);
+		p.setWidgetHidden(navi, true);		
+		
+		// Panel den Kopfbereich zuweisen
+		traeger = new HorizontalPanel();
+		p.addNorth(traeger, 5);
+		p.setWidgetHidden(traeger, true);	
+		
+		// Panel den Fußbereich zuweisen
+		footPanel = new VerticalPanel();
+		p.addSouth(footPanel, 5);
+		p.setWidgetHidden(footPanel, true);	
+		
+		// Panel den rechten Bildschirmbereich zuweisen
+		traegerInfoPanel = new VerticalPanel();
+		p.addEast(traegerInfoPanel, 30);
+		p.setWidgetHidden(traegerInfoPanel, true);	
+		
+		// Panel dem Hauptbereich (Mitte) zuweisen
+		p.add(mainPanel);
+		
+		rlp = RootLayoutPanel.get();
+		rlp.add(p);
 	}
 
 }

@@ -118,11 +118,291 @@ public class VerwaltungImpl extends RemoteServiceServlet implements Verwaltung {
 	   * mit der Datenbank abgleicht.
 	   */
 	public ZeitslotMapper zeitslotMapper = ZeitslotMapper.zeitslotMapper();
+	
+	/**
+	   * Referenzen auf den bereits instantiierten DatenbankMappern, der Businessobjekte 
+	   * mit der Datenbank abgleicht.
+	   */
+	public LecturerMapper lecturerMapper = LecturerMapper.lecturerMapper();
+	public CategoryMapper categoryMapper = CategoryMapper.categoryMapper();
+	
+	/**
+	 * Flag, welche angibt, ob sich der Admin bereits authentifiziert hat
+	 */
+	private boolean isAdmin = false;
 
+	/**
+	 * Der aktuell angemeldete Lecturer
+	 */
+	private Lecturer signedInLecturer = null;
 	
 	/*
 	 * ***********************************************************************************************
-	 * ABSCHNITT, Beginn: Methoden um dem Client die geforderten BusinessObjects zu übermitteln
+	 * ABSCHNITT, Beginn: Services für den Admin
+	 * ***********************************************************************************************
+	 */
+	
+	/**
+	 * Methode um alle Lecturer mittels einem Mapper-Objekt dem Client zur Verfügung zu stellen
+	 * 
+	 * @return	Vector mit Lecturer
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht. 
+	 */
+	public Vector<Lecturer> auslesenAlleLecturer() throws RuntimeException {
+		if (!isAdmin) {
+			throw new RuntimeException("Berechtigung nicht ausreichend");
+		}
+		
+		return lecturerMapper.findAll();
+	}
+	
+	/**
+	 * Methode um einen Lecturer erneut anhand "sich selbst" dem Client zur Verfügung zu stellen
+	 * 
+	 * @param	lecturer - Lecturer-Objekt welches erneut ausgelesen werden sollen
+	 * @return	Vector mit einem Lecturer
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht. 
+	 */
+	public Vector<Lecturer> auslesenLecturer(Lecturer lecturer) throws RuntimeException {
+		if (isAdmin || signedInLecturer != null) {
+			Vector<Integer> vi = new Vector<Integer>();
+			vi.add(lecturer.getId());
+			return lecturerMapper.findByKey(vi);
+		}
+		
+		throw new RuntimeException("Berechtigung nicht ausreichend");
+	}
+	
+	/**
+	 * Methode um einen Lecturer abgeändert mittels Mapper-Objekt in der DB zu überspeichern
+	 * 
+	 * @param	lecturer - Objekt welches geändert werden sollen
+	 * @return	Lecturer-Objekt (falls keine semantischen Fehler auftraten)
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht.
+	 */
+	public Lecturer aendernLecturer(Lecturer lecturer) throws RuntimeException {
+		if (isAdmin || signedInLecturer != null) {
+			return this.lecturerMapper.update(lecturer);
+		}
+		
+		throw new RuntimeException("Berechtigung nicht ausreichend");		
+
+	}
+	
+	/**
+	 * Methode um einen bestimmten Lecturer zu löschen
+	 * 
+	 * @param	lecturer -Objekt welches gelöscht werden sollen
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht. 
+	 */
+	public void loeschenLecturer(Lecturer lecturer) throws RuntimeException {
+		if (!isAdmin) {
+			throw new RuntimeException("Berechtigung nicht ausreichend");
+		}
+		
+		this.lecturerMapper.delete(lecturer);
+	}
+	
+	/**
+	 * Methode um einen neuen Lecturer mittels Mapper-Objekt in der DB zu speichern
+	 * 
+	 * @param	bezeichnung des neuen Lecturers
+	 * 			kapazitaet des neuen Raumes
+	 * @return	Lecturer-Objekt (falls keine semantischen Fehler auftraten)
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht.
+	 * 			Außerdem erzeugen semantische Fehler Instanzen von IllegalArgumentException,
+	 * 			welche ebenfalls an den Client weitergereicht werden 
+	 */
+	public Lecturer anlegenLecturer(String user, String password, String firstName, String name) throws RuntimeException {
+		if (!isAdmin) {
+			throw new RuntimeException("Berechtigung nicht ausreichend");
+		}
+		
+		Lecturer newLecturer = new Lecturer();
+		newLecturer.setUser(user);
+		newLecturer.setPassword(password);
+		newLecturer.setFirstName(firstName);
+		newLecturer.setName(name);
+		
+		return this.lecturerMapper.insertIntoDB(newLecturer);
+		
+	}
+	
+	/**
+	 * Methode um den Admin zu authentifizieren
+	 * 
+	 * @param	password des Admin
+	 * @return	Boolean
+	 * @throws	Beim prüfen des Passworts kann es zur Unstimmigkeit kommen
+	 */
+	public boolean adminAuthenticate(String password) throws RuntimeException {
+		
+		if (password.equals("pass")) {
+			isAdmin = true;
+		}
+		else {
+			throw new RuntimeException("Authentifizierung fehlgeschlagen!");
+		}
+		
+		return isAdmin;
+		
+	}
+	
+	/*
+	 * ***********************************************************************************************
+	 * ABSCHNITT, Ende: Services für den Admin
+	 * ***********************************************************************************************
+	 */
+	
+	/*
+	 * ***********************************************************************************************
+	 * ABSCHNITT, Beginn: Services für den Lecturer
+	 * ***********************************************************************************************
+	 */
+	
+	/**
+	 * Methode um den Lecturer zu authentifizieren
+	 * 
+	 * @param	user des Lecturers
+	 * 			password des Lecturers
+	 * @return	Boolean
+	 * @throws	Beim prüfen des Usernamens und des Passworts kann es zur Unstimmigkeit kommen
+	 */
+	public boolean lecturerAuthenticate(String user, String password) throws RuntimeException {
+		signedInLecturer = this.lecturerMapper.findByLogin(user, password);
+		
+		if (signedInLecturer == null) {
+			throw new RuntimeException("User oder Passwort nicht korrekt!");
+		}
+		return true;
+	}
+	
+	/**
+	 * Methode um den eingeloggten Lecturer als Objekt zurückzugeben
+	 * 
+	 * @return	Boolean
+	 * @throws	Beim prüfen des Usernamens und des Passworts kann es zur Unstimmigkeit kommen
+	 */
+	public Lecturer getSignedLecturer() throws RuntimeException {
+		
+		if (signedInLecturer != null) {
+			return signedInLecturer;
+		}
+		else {
+			throw new RuntimeException("Es ist ein Fehler aufgetreten, bitte melden Sie sich erneut an.");
+		}
+	}
+	
+	/**
+	 * Methode um eine Category abgeändert mittels Mapper-Objekt in der DB zu überspeichern
+	 * 
+	 * @param	category - Objekt welches geändert werden sollen
+	 * @return	Category-Objekt (falls keine semantischen Fehler auftraten)
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht.
+	 */
+	public Category aendernCategory(Category category) throws RuntimeException {
+		if (signedInLecturer != null) {
+			return this.categoryMapper.update(category);
+		}
+		else {
+			throw new RuntimeException("Es ist ein Fehler aufgetreten, bitte melden Sie sich erneut an.");
+		}
+	}
+	
+	/**
+	 * Methode um eine Category erneut anhand "sich selbst" dem Client zur Verfügung zu stellen
+	 * 
+	 * @param	category - Category-Objekt welches erneut ausgelesen werden sollen
+	 * @return	Vector mit einer Category
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht. 
+	 */
+	public Vector<Category> auslesenCategory(Category category) throws RuntimeException {
+		if (signedInLecturer != null) {
+			Vector<Integer> vi = new Vector<Integer>();
+			vi.add(category.getId());
+			return categoryMapper.findByKey(vi);
+		}
+		else {
+			throw new RuntimeException("Es ist ein Fehler aufgetreten, bitte melden Sie sich erneut an.");
+		}
+	}
+	
+	/**
+	 * Methode um alle Categories mittels einem Mapper-Objekt dem Client zur Verfügung zu stellen
+	 * 
+	 * @return	Vector mit Categories
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht. 
+	 */
+	public Vector<Category> auslesenAlleCategories() throws RuntimeException {
+		if (signedInLecturer != null) {
+			return categoryMapper.findAll();
+		}
+		else {
+			throw new RuntimeException("Es ist ein Fehler aufgetreten, bitte melden Sie sich erneut an.");
+		}		
+	}
+	
+	/**
+	 * Methode um eine bestimmte Category zu löschen
+	 * 
+	 * @param	category -Objekt welches gelöscht werden sollen
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht. 
+	 */
+	public void loeschenCategory(Category category) throws RuntimeException {
+		if (signedInLecturer != null) {
+			this.categoryMapper.delete(category);
+		}
+		else {
+			throw new RuntimeException("Es ist ein Fehler aufgetreten, bitte melden Sie sich erneut an.");
+		}
+	}
+	
+	/**
+	 * Methode um eine neue Category mittels Mapper-Objekt in der DB zu speichern
+	 * 
+	 * @param	description der neuen Category
+	 * @return	Category-Objekt (falls keine semantischen Fehler auftraten)
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht.
+	 * 			Außerdem erzeugen semantische Fehler Instanzen von IllegalArgumentException,
+	 * 			welche ebenfalls an den Client weitergereicht werden 
+	 */
+	public Category anlegenCategory(String description) throws RuntimeException {
+		if (signedInLecturer != null) {
+			
+			Category newCategory = new Category();
+			newCategory.setDescription(description);
+			newCategory.setLecturerID(this.signedInLecturer.getId());
+			
+			return this.categoryMapper.insertIntoDB(newCategory);
+		}
+		else {
+			throw new RuntimeException("Es ist ein Fehler aufgetreten, bitte melden Sie sich erneut an.");
+		}		
+	}
+	
+	/*
+	 * ***********************************************************************************************
+	 * ABSCHNITT, Ende: Services für den Lecturer
 	 * ***********************************************************************************************
 	 */
 	

@@ -239,5 +239,35 @@ public class CategoryMapper {
 		
 	}
 	
+	/**
+	 * Methode um Categories anhand eines Lecturers zu löschen
+	 * 
+	 * @param	lecturer - Objekt welches die Grundlage darstellt
+	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
+	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
+	 */
+	public void deleteByLecturer(Category category) throws RuntimeException {
+		
+		/* Das Löschen einer Category hat das Löschen aller Questions
+		 * zur Folge, welche dieser Category zugeordnet sind
+		 */
+		
+		
+		Connection con = DBConnection.connection();
+		try {
+			Statement stmt = con.createStatement();
+			
+			// Löschen der Questions
+			
+			// Löschen der Category-Entität
+			String sql = "DELETE FROM Category WHERE id = '"+category.getId()+"';";
+			stmt.executeUpdate(sql);
+						
+		}
+		catch (SQLException e1) {
+			throw new RuntimeException("Datenbankbankproblem - cm.delete: " + e1.getMessage());
+		}
+		
+	}
 
 }

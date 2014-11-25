@@ -7,7 +7,9 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 import de.hdm.clicker.shared.bo.Belegung;
+import de.hdm.clicker.shared.bo.Category;
 import de.hdm.clicker.shared.bo.Dozent;
+import de.hdm.clicker.shared.bo.Lecturer;
 import de.hdm.clicker.shared.bo.Lehrveranstaltung;
 import de.hdm.clicker.shared.bo.Raum;
 import de.hdm.clicker.shared.bo.Semesterverband;
@@ -26,7 +28,7 @@ import de.hdm.clicker.shared.bo.Zeitslot;
  * Servlets an.
  * </p>
  * 
- * @author Thies, Moeser, Sonntag, Zanella
+ * @author Roth, Zimmermann, Zanella
  * @version 1
  */
 
@@ -35,9 +37,47 @@ public interface Verwaltung extends RemoteService {
 		
 	/*
 	 * ***********************************************************************************************
-	 * ABSCHNITT, Beginn: Methoden um dem Client die geforderten BusinessObjects zu übermitteln
+	 * ABSCHNITT, Beginn: Services für den Admin
 	 * ***********************************************************************************************
 	 */
+	
+	public Vector<Lecturer> auslesenAlleLecturer() throws RuntimeException;
+	
+	public Lecturer aendernLecturer(Lecturer lecturer) throws RuntimeException;
+	
+	public Vector<Lecturer> auslesenLecturer(Lecturer lecturer) throws RuntimeException;
+	
+	public void loeschenLecturer(Lecturer lecturer) throws RuntimeException;
+	
+	public Lecturer anlegenLecturer(String user, String password, String firstName, String name) throws RuntimeException;
+	
+	public boolean adminAuthenticate(String password) throws RuntimeException;
+	
+	/*
+	 * ***********************************************************************************************
+	 * ABSCHNITT, Ende: Services für den Admin
+	 * ***********************************************************************************************
+	 */
+	
+	/*
+	 * ***********************************************************************************************
+	 * ABSCHNITT, Beginn: Services für den Lecturer
+	 * ***********************************************************************************************
+	 */
+	
+	public boolean lecturerAuthenticate(String user, String password) throws RuntimeException;
+	
+	public Lecturer getSignedLecturer() throws RuntimeException;
+	
+	public Category aendernCategory(Category category) throws RuntimeException;
+	
+	public Vector<Category> auslesenCategory(Category category) throws RuntimeException;
+	
+	public Vector<Category> auslesenAlleCategories() throws RuntimeException;
+	
+	public void loeschenCategory(Category category) throws RuntimeException;
+	
+	public Category anlegenCategory(String description) throws RuntimeException;
 	
 	/**
 	 * Methode um alle Semesterverbände mittels einem Mapper-Objekt dem Client zur Verfügung zu stellen

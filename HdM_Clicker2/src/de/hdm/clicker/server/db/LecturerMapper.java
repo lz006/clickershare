@@ -114,6 +114,45 @@ public class LecturerMapper {
 	}
 	
 	/**
+	 * Methode um einen Lecturer anhand eines Logins aus der DB auszulesen
+	 * 
+	 * @param	user 
+	 * 			password
+	 * @return	Lecturer-Objekt, des Lecturer, welcher sich angemeldet hat
+	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
+	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
+	 */
+	public Lecturer findByLogin(String user, String password) throws RuntimeException {
+					
+		//Einholen einer DB-Verbindung		
+		Connection con = DBConnection.connection();
+		ResultSet rs;
+		Lecturer lecturer = null;
+		try{
+			// Ausführung des SQL-Querys
+			Statement stmt = con.createStatement();
+			String sql = "SELECT * FROM Lecturer WHERE user = '"+user+"' and password = '"+password+"'";
+			rs = stmt.executeQuery(sql);
+			
+			// Erstellung des "Lecturer-Vectors"
+			while(rs.next()){
+				lecturer = new Lecturer();
+				lecturer.setId(rs.getInt("id"));
+				lecturer.setUser(rs.getString("user"));
+				lecturer.setPassword(rs.getString("password"));
+				lecturer.setFirstName(rs.getString("firstname"));
+				lecturer.setName(rs.getString("name")); 
+	          }
+						
+		}
+		catch (SQLException e1) {
+			throw new RuntimeException("Datenbankbankproblem - dm fbk: " + e1.getMessage());				
+		}
+		
+		return lecturer;
+	}
+	
+	/**
 	 * Methode um einen Lecturer in der DB zu aktualisieren
 	 * 
 	 * @param	lecturer - Objekt welches aktualisiert werden soll 			
@@ -222,8 +261,9 @@ public class LecturerMapper {
 	 */
 	public void delete(Lecturer lecturer) throws RuntimeException {
 		
-		/* Das Löschen eines Lecturers hat das Löschen aller mit ihm
-		 * in verbindungstehender Categories und Quizzes zur Folge
+		/* 
+		 * Das Löschen eines Lecturers hat das Löschen aller mit ihm
+		 * in verbindungstehenden Entitäten anderer Typen zur Folge
 		 */
 		
 		
@@ -231,12 +271,45 @@ public class LecturerMapper {
 		try {
 			Statement stmt = con.createStatement();
 			
+			// Löschen der Results auf Grundlage der Quizzes des Lecturers			
+			String sql = "Delete From `hdm-clicker`.Results where quizid in "
+					+ "(Select tmp.quizid from (Select res.quizid from `hdm-clicker`.Results as res "
+					+ "inner join `hdm-clicker`.Quiz as qui on res.quizid = qui.id and "
+					+ "res.quizversion = qui.version "
+					+ "where qui.lecturerid = "+lecturer.getId()+") as tmp)";
+			stmt.executeUpdate(sql);
+			
+			// Löschen Verbindungen zwischen den Questions des Lecturers und den Quizzes
+			sql = "Delete From `hdm-clicker`.NMTable_QQ where questionid "
+					+ "in (Select q.id from `hdm-clicker`.Question as q "
+					+ "inner join `hdm-clicker`.Category as c "
+					+ "on c.id = q.categoryid where c.lecturerid = "+lecturer.getId()+");";
+			stmt.executeUpdate(sql);
+			
+			// Löschen der Images der Questions des Lecturers
+			sql = "Delete From `hdm-clicker`.Images where id "
+					+ "in (Select q.id from `hdm-clicker`.Question as q "
+					+ "inner join `hdm-clicker`.Category as c "
+					+ "on c.id = q.categoryid where c.lecturerid = "+lecturer.getId()+");";
+			stmt.executeUpdate(sql);
+			
+			// Löschen der Questions des Lecturers
+			sql = "Delete From `hdm-clicker`.Question where id in "
+					+ "(Select tmp.id from (Select q.id from "
+					+ "`hdm-clicker`.Category as cat inner join `hdm-clicker`.Question as q "
+					+ "on cat.id = q.categoryid where cat.lecturerid = "+lecturer.getId()+") as tmp)";
+			stmt.executeUpdate(sql);
+			
 			// Löschen der Categories
+			sql = "Delete From `hdm-clicker`.Category where lecturerid = "+lecturer.getId()+";";
+			stmt.executeUpdate(sql);
 			
 			// Löschen der Quizze
+			sql = "Delete From `hdm-clicker`.Quiz where lecturerid = "+lecturer.getId()+";";
+			stmt.executeUpdate(sql);
 			
-			// Löschen Löschen der Lecturer-Entität
-			String sql = "DELETE FROM Lecturer WHERE id = '"+lecturer.getId()+"';";
+			// Löschen Löschen der Lecturer-Entität			
+			sql = "DELETE FROM Lecturer WHERE id = '"+lecturer.getId()+"';";
 			stmt.executeUpdate(sql);
 						
 		}
