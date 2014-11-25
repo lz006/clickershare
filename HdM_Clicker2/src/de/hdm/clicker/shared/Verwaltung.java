@@ -73,7 +73,7 @@ public interface Verwaltung extends RemoteService {
 	
 	public Vector<Category> auslesenCategory(Category category) throws RuntimeException;
 	
-	public Vector<Category> auslesenAlleCategories() throws RuntimeException;
+	public Vector<Category> auslesenAlleCategoriesByLecturer() throws RuntimeException;
 	
 	public void loeschenCategory(Category category) throws RuntimeException;
 	

@@ -209,6 +209,44 @@ public class CategoryMapper {
 	}
 	
 	/**
+	 * Methode um alle Categories anhand eines Lecturers aus der DB auszulesen
+	 * 
+	 * @param	lecturer - Objekt aufgrund dessen ausgeleesnern werden soll
+	 * @return	Vector mit Categories
+	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
+	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
+	 */	
+	public Vector<Category> findAllByLecturer(Lecturer lecturer) throws RuntimeException {
+				
+		Connection con = DBConnection.connection();
+		
+		Vector<Category> categories = new Vector<Category>();
+		
+		try{		
+			// Ausführung des SQL-Querys
+			Statement stmt = con.createStatement();
+			String sql = "SELECT * FROM Category Where lecturerid = "+lecturer.getId()+" ORDER BY description;";
+			ResultSet rs = stmt.executeQuery(sql);
+			
+			while(rs.next()) {
+				Category category = new Category();
+				category.setId(rs.getInt("id"));
+				category.setDescription(rs.getString("description"));
+				category.setLecturerID(rs.getInt("lecturerid"));
+				categories.add(category);
+			}
+			
+		}
+		catch (SQLException e1) {
+			throw new RuntimeException("Datenbankbankproblem - cm fa: " + e1.getMessage());		
+		}
+		
+				
+		return categories;
+			
+	}
+	
+	/**
 	 * Methode um eine Category aus der DB zu löschen
 	 * 
 	 * @param	category - Objekt welches gelöscht werden soll

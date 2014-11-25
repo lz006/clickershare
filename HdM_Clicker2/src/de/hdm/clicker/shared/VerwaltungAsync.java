@@ -60,7 +60,7 @@ public interface VerwaltungAsync {
 	
 	void auslesenCategory(Category category, AsyncCallback<Vector<Category>> callback) throws RuntimeException;	
 
-	void auslesenAlleCategories(AsyncCallback<Vector<Category>> callback) throws RuntimeException;
+	void auslesenAlleCategoriesByLecturer(AsyncCallback<Vector<Category>> callback) throws RuntimeException;
 	
 	void loeschenCategory(Category category, AsyncCallback<Void> callback) throws RuntimeException;
 	

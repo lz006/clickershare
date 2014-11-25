@@ -542,7 +542,12 @@ public class Clicker implements EntryPoint {
 	 */
 	public void setLecturerFormToMain() {
 		lF = new LecturerForm(verwaltung);
-		ltvm.setLecturerForm(lF);	
+		if (ltvm == null) {
+			atvm.setLecturerForm(lF);
+		}
+		else {
+			ltvm.setLecturerForm(lF);	
+		}
 		
 		mainPanel.clear();
 		mainPanel.add(lF);
@@ -749,7 +754,7 @@ public class Clicker implements EntryPoint {
 				authDB.setWidget(authDBVP);
 				
 				authDB.center();
-				authDBPWTB.setFocus(true);
+				authDBUserTB.setFocus(true);
 				
 				addClickHandlerToLDBButton();
 				

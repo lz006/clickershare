@@ -188,7 +188,11 @@ public class VerwaltungImpl extends RemoteServiceServlet implements Verwaltung {
 	 */
 	public Lecturer aendernLecturer(Lecturer lecturer) throws RuntimeException {
 		if (isAdmin || signedInLecturer != null) {
-			return this.lecturerMapper.update(lecturer);
+			Lecturer editedLec = this.lecturerMapper.update(lecturer);
+			if (signedInLecturer != null) {
+				signedInLecturer = editedLec;
+			}
+			return editedLec;
 		}
 		
 		throw new RuntimeException("Berechtigung nicht ausreichend");		
@@ -342,16 +346,16 @@ public class VerwaltungImpl extends RemoteServiceServlet implements Verwaltung {
 	}
 	
 	/**
-	 * Methode um alle Categories mittels einem Mapper-Objekt dem Client zur Verfügung zu stellen
+	 * Methode um alle Categories zu einem Lecturer mittels einem Mapper-Objekt dem Client zur Verfügung zu stellen
 	 * 
 	 * @return	Vector mit Categories
 	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
 	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
 	 * 			weitergereicht. 
 	 */
-	public Vector<Category> auslesenAlleCategories() throws RuntimeException {
+	public Vector<Category> auslesenAlleCategoriesByLecturer() throws RuntimeException {
 		if (signedInLecturer != null) {
-			return categoryMapper.findAll();
+			return categoryMapper.findAllByLecturer(this.signedInLecturer);
 		}
 		else {
 			throw new RuntimeException("Es ist ein Fehler aufgetreten, bitte melden Sie sich erneut an.");
