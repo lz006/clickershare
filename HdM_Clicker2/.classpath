@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/Kepler/HDM/6.SEM/IT-Workshop Advanced/jars/commons-fileupload-1.2.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Kepler/HDM/6.SEM/IT-Workshop Advanced/jars/commons-io-2.3.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Kepler/HDM/6.SEM/IT-Workshop Advanced/jars/log4j.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Kepler/HDM/6.SEM/IT-Workshop Advanced/jars/gwtupload-1.0.1.jar"/>
+	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>
 	<classpathentry kind="con" path="com.google.gwt.eclipse.core.GWT_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
