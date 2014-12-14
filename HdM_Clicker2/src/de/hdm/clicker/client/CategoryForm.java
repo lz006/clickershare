@@ -4,18 +4,23 @@ import java.util.Vector;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.ErrorEvent;
+import com.google.gwt.event.dom.client.ErrorHandler;
 import com.google.gwt.event.dom.client.FocusEvent;
 import com.google.gwt.event.dom.client.FocusHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+
 import de.hdm.clicker.shared.*;
 import de.hdm.clicker.shared.bo.*;
 
@@ -96,7 +101,49 @@ public class CategoryForm extends VerticalPanel {
 
 		this.add(grid);
 		this.add(buttonPanel);
+		
+		
 
+	}
+	
+	public void bild() {
+		Integer i = 6;
+		Vector<Integer> vi = new Vector<Integer>();
+		vi.add(i);
+		verwaltung.auslesenImages(vi, new AsyncCallback<Vector<String>>() {
+
+			@Override
+			public void onFailure(Throwable caught) {
+				Window.alert(caught.getMessage());
+				
+			}
+
+			@Override
+			public void onSuccess(Vector<String> result) {
+				System.out.println(result.elementAt(0));
+				Image image = new Image(result.elementAt(0));
+				/*
+				Image image = new Image("data:image/png;base64,"
+						+"iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABGdBTUEAALGP"
+						+"C/xhBQAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9YGARc5KB0XV+IA"
+						+"AAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAF1J"
+						+"REFUGNO9zL0NglAAxPEfdLTs4BZM4DIO4C7OwQg2JoQ9LE1exdlYvBBeZ7jq"
+						+"ch9//q1uH4TLzw4d6+ErXMMcXuHWxId3KOETnnXXV6MJpcq2MLaI97CER3N0"
+						+"vr4MkhoXe0rZigAAAABJRU5ErkJggg==");
+				*/
+				image.addErrorHandler(new ErrorHandler() {
+				      public void onError(ErrorEvent event) {
+				    	  Window.alert(event.toDebugString());;
+				      }
+				    });
+				image.setHeight("5em");
+				FormPanel fp = new FormPanel();
+				fp.add(image);
+				CategoryForm.this.add(fp);
+				Window.alert("geladen");
+			}
+			
+		});
 	}
 	
 	/**
@@ -141,6 +188,7 @@ public class CategoryForm extends VerticalPanel {
 
 		speichernAnlegenButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
+				
 				speichernAnlegenButton.setEnabled(false);
 				loeschenButton.setEnabled(false);
 
@@ -192,6 +240,10 @@ public class CategoryForm extends VerticalPanel {
 
 		loeschenButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
+				bild();
+			}
+			
+			public void onCClick(ClickEvent event) {
 				speichernAnlegenButton.setEnabled(false);
 				loeschenButton.setEnabled(false);
 

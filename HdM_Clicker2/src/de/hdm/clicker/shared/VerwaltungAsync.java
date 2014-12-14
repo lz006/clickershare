@@ -66,6 +66,8 @@ public interface VerwaltungAsync {
 	
 	void anlegenCategory(String description, AsyncCallback<Category> callback) throws RuntimeException;
 	
+	void auslesenImages(Vector<Integer> keys,  AsyncCallback<Vector<String>> callback) throws RuntimeException;
+	
 	
 	void auslesenAlleSemesterverbaende(AsyncCallback<Vector<Semesterverband>> callback) throws RuntimeException;
 	

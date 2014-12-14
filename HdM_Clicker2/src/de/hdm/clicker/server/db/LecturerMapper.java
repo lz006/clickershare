@@ -103,7 +103,7 @@ public class LecturerMapper {
 				lecturer.setFirstName(rs.getString("firstname"));
 				lecturer.setName(rs.getString("name"));
 				lecturers.add(lecturer);  
-	          }
+	         }
 						
 		}
 		catch (SQLException e1) {

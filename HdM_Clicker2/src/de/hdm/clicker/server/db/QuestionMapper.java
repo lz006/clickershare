@@ -91,7 +91,7 @@ public class QuestionMapper {
 		try{
 			// Ausführung des SQL-Querys
 			Statement stmt = con.createStatement();
-			String sql = "SELECT * FROM Question WHERE ID IN (" + ids.toString() + ") ORDER BY questionbody";
+			String sql = "SELECT * FROM Question WHERE id IN (" + ids.toString() + ") ORDER BY questionbody";
 			rs = stmt.executeQuery(sql);
 			
 			// Erstellung des "Question-Vectors"
@@ -116,7 +116,7 @@ public class QuestionMapper {
 					question.setActive(false);
 				}
 				question.setCategoryID(rs.getInt("categoryid"));
-				
+				questions.add(question);
 			}
 						
 		}
@@ -126,6 +126,7 @@ public class QuestionMapper {
 		
 		return questions;
 	}
+	
 	
 	/**
 	 * Methode um eine Question in der DB zu aktualisieren
@@ -313,6 +314,53 @@ public class QuestionMapper {
 			throw new RuntimeException("Datenbankbankproblem - qm.delete: " + e1.getMessage());
 		}
 		
+	}
+	
+	/**
+	 * Methode um eine beliebige Anzahl an Images anhand Ihrerer ID's aus der
+	 * DB auszulesen
+	 * 
+	 * @param	keys - Primärschlüsselattribut(e) (->DB)
+	 * @return	Vector mit Image-Strings, die den Primärschlüsselattributen entsprechen
+	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
+	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
+	 */
+	public Vector<Blob> findByKeyImage(Vector<Integer> keys) throws RuntimeException {
+		StringBuffer ids = new StringBuffer();
+		
+		//Erstellung des dynamischen Teils des SQL-Querys	
+		if (keys.size() > 1) {
+			for (int i = 0; i < keys.size()-1; i++) {
+			ids.append(keys.elementAt(i));	
+			ids.append(",");
+			}		
+		}
+			
+		ids.append(keys.elementAt(keys.size()-1));			
+			
+		//Einholen einer DB-Verbindung		
+		Connection con = DBConnection.connection();
+		ResultSet rs;
+		Vector<Blob> images = new Vector<Blob>();
+		try{
+			// Ausführung des SQL-Querys
+			Statement stmt = con.createStatement();
+			String sql = "SELECT Image FROM `hdm-clicker`.Images WHERE id IN (" + ids.toString() + ") ORDER BY id";
+			rs = stmt.executeQuery(sql);
+			
+			// Erstellung des "Question-Vectors"
+			while(rs.next()){
+				Blob image = rs.getBlob("Image");
+				images.add(image);
+								
+			}
+						
+		}
+		catch (SQLException e1) {
+			throw new RuntimeException("Datenbankbankproblem - qm fbkI: " + e1.getMessage());				
+		}
+		
+		return images;
 	}
 	
 

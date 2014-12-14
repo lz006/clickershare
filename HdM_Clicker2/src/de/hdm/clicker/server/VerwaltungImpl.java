@@ -1,13 +1,23 @@
 package de.hdm.clicker.server;
 
 
+import java.io.UnsupportedEncodingException;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+
+import org.apache.commons.codec.binary.Base64;
+
 import de.hdm.clicker.server.db.*;
 import de.hdm.clicker.shared.Verwaltung;
 import de.hdm.clicker.shared.bo.*;
+
+import com.google.appengine.api.images.Image;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 /**
@@ -125,6 +135,7 @@ public class VerwaltungImpl extends RemoteServiceServlet implements Verwaltung {
 	   */
 	public LecturerMapper lecturerMapper = LecturerMapper.lecturerMapper();
 	public CategoryMapper categoryMapper = CategoryMapper.categoryMapper();
+	public QuestionMapper questionMapper = QuestionMapper.questionMapper();
 	
 	/**
 	 * Flag, welche angibt, ob sich der Admin bereits authentifiziert hat
@@ -403,6 +414,27 @@ public class VerwaltungImpl extends RemoteServiceServlet implements Verwaltung {
 			throw new RuntimeException("Es ist ein Fehler aufgetreten, bitte melden Sie sich erneut an.");
 		}		
 	}
+	
+	/**
+	 * Methode um ein Image erneut anhand einer ID dem Client zur Verfügung zu stellen
+	 * 
+	 * @param	keys - entspricht den IDs der Image
+	 * @return	Vector mit Image-Strings
+	 * @throws	Beim Aufruf der Mapper-Methode kann dort eine Exception auftreten. Diese
+	 * 			Exception wird bis zur Client-Methode, welche den Service in Anspruch nimmt
+	 * 			weitergereicht. 
+	 */
+	public Vector<String> auslesenImages(Vector<Integer> keys) throws RuntimeException {
+		Vector<String> imageStrings = new Vector<String>();
+		
+		this.lecturerMapper.findAll();
+		
+		
+		return imageStrings;
+		
+	}
+	
+	
 	
 	/*
 	 * ***********************************************************************************************

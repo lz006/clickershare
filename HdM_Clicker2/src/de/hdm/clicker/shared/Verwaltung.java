@@ -79,6 +79,8 @@ public interface Verwaltung extends RemoteService {
 	
 	public Category anlegenCategory(String description) throws RuntimeException;
 	
+	public Vector<String> auslesenImages(Vector<Integer> keys) throws RuntimeException;
+	
 	/**
 	 * Methode um alle Semesterverbände mittels einem Mapper-Objekt dem Client zur Verfügung zu stellen
 	 * 
