@@ -32,9 +32,9 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import de.hdm.clicker.shared.*;
 
 /**
- * Entry-Point-Klasse des Projekts <b>Stundenplantool2</b>.
+ * Entry-Point-Klasse des Projekts <b>HdM-Clicker</b>.
  * 
- * @author Thies, Roth, Klatt, Zimmermann, Moser, Sonntag, Zanella
+ * @author Roth, Zimmermann, Zanella
  * @version 1.0
  */
 public class Clicker implements EntryPoint {
