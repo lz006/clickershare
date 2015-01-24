@@ -15,15 +15,35 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     <servlet-name>greetServlet</servlet-name>
     <url-pattern>/clicker/verwaltung</url-pattern>
   </servlet-mapping>
-  
+    
   <servlet>
-    <servlet-name>greetServlet2</servlet-name>
-    <servlet-class>de.hdm.clicker.server.report.ReportImpl</servlet-class>
+    <servlet-name>greetServlet3</servlet-name>
+    <servlet-class>de.hdm.clicker.server.ImageUploadImpl</servlet-class>
   </servlet>
   
   <servlet-mapping>
-    <servlet-name>greetServlet2</servlet-name>
-    <url-pattern>/clicker/report</url-pattern>
+    <servlet-name>greetServlet3</servlet-name>
+    <url-pattern>/clicker/upload</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>greetServlet4</servlet-name>
+    <servlet-class>de.hdm.clicker.server.ImageDownloadImpl</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>greetServlet4</servlet-name>
+    <url-pattern>/clicker/download</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>greetServlet5</servlet-name>
+    <servlet-class>de.hdm.clicker.server.ImageDownloadPlayQuizImpl</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>greetServlet5</servlet-name>
+    <url-pattern>/clicker/xcxc</url-pattern>
   </servlet-mapping>
   
   <!-- Default page to serve -->

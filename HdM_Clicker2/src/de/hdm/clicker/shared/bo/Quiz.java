@@ -16,9 +16,9 @@ public class Quiz extends BusinessObject {
 	// Initialwert ist "0"...
 	private int version = 0;
 	
-	private Date startDate;
+	private int startDate;
 	
-	private Time startTime;
+	private int startTime;
 	
 	private String password;
 	
@@ -29,8 +29,25 @@ public class Quiz extends BusinessObject {
 	private int lecturerID;
 	
 	private int durationQuestion;
+
+	private boolean active;
 	
-	private int need2SS;
+	private boolean automatic;
+	
+	private boolean random;
+	
+	private boolean started;
+	
+	private int questionsCount;
+	
+
+	public boolean isStarted() {
+		return started;
+	}
+
+	public void setStarted(boolean started) {
+		this.started = started;
+	}
 
 	public int getVersion() {
 		return version;
@@ -40,19 +57,19 @@ public class Quiz extends BusinessObject {
 		this.version = version;
 	}
 
-	public Date getStartDate() {
+	public int getStartDate() {
 		return startDate;
 	}
 
-	public void setStartDate(Date startDate) {
+	public void setStartDate(int startDate) {
 		this.startDate = startDate;
 	}
 
-	public Time getStartTime() {
+	public int getStartTime() {
 		return startTime;
 	}
 
-	public void setStartTime(Time startTime) {
+	public void setStartTime(int startTime) {
 		this.startTime = startTime;
 	}
 
@@ -96,12 +113,36 @@ public class Quiz extends BusinessObject {
 		this.durationQuestion = durationQuestion;
 	}
 
-	public int getNeed2SS() {
-		return need2SS;
+	public boolean isActive() {
+		return active;
 	}
 
-	public void setNeed2SS(int need2ss) {
-		need2SS = need2ss;
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public boolean isAutomatic() {
+		return automatic;
+	}
+
+	public void setAutomatic(boolean automatic) {
+		this.automatic = automatic;
+	}
+
+	public boolean isRandom() {
+		return random;
+	}
+
+	public void setRandom(boolean random) {
+		this.random = random;
+	}
+
+	public int getQuestionsCount() {
+		return questionsCount;
+	}
+
+	public void setQuestionsCount(int questionsCount) {
+		this.questionsCount = questionsCount;
 	}
 	
 	

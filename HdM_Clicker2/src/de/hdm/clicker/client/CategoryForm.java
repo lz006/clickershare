@@ -4,20 +4,13 @@ import java.util.Vector;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.ErrorEvent;
-import com.google.gwt.event.dom.client.ErrorHandler;
-import com.google.gwt.event.dom.client.FocusEvent;
-import com.google.gwt.event.dom.client.FocusHandler;
-import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.FormPanel;
+import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -46,6 +39,11 @@ public class CategoryForm extends VerticalPanel {
 	LecturerTreeViewModel ltvm = null;
 
 	/**
+	 * Referenz auf eine QuestionForm um Zugriff auf deren Methoden zu bekommen
+	 */
+	QuestionForm qF = null;
+	
+	/**
 	 * Angezeigter Category
 	 */
 	Category shownCategory = null;
@@ -67,6 +65,11 @@ public class CategoryForm extends VerticalPanel {
 	 * Button zum löschen einer Category
 	 */
 	Button loeschenButton;
+	
+	/**
+	 * Button um zur Question-Liste zurückzukehren
+	 */
+	Button zurueckButton = null;
 
 	/**
 	 * Tabelle (Grid) welche Widgets strukturiert aufnehmen und selbst
@@ -78,7 +81,18 @@ public class CategoryForm extends VerticalPanel {
 	 * Panel um Buttons anzuordnen
 	 */
 	HorizontalPanel buttonPanel;
+	
+	/**
+	 * Panel und FlexTable welche die zugeordneten Questions auflisten (Ändern-Maske)
+	 */
+	VerticalPanel questionListPanel;
+	FlexTable questionFlexTable;
 
+	/**
+	 *Vector mit allen der Category zugeordneten Questions 
+	 */
+	Vector<Question> questionVector = null;
+	
 	/**
 	 * Komstruktor der alle notwendigen Widgets initialisiert und anordnet,
 	 * so dass das Objekt für weitere Konfigurationen bereit ist
@@ -100,50 +114,8 @@ public class CategoryForm extends VerticalPanel {
 		buttonPanel.add(speichernAnlegenButton);
 
 		this.add(grid);
-		this.add(buttonPanel);
-		
-		
+		this.add(buttonPanel);		
 
-	}
-	
-	public void bild() {
-		Integer i = 6;
-		Vector<Integer> vi = new Vector<Integer>();
-		vi.add(i);
-		verwaltung.auslesenImages(vi, new AsyncCallback<Vector<String>>() {
-
-			@Override
-			public void onFailure(Throwable caught) {
-				Window.alert(caught.getMessage());
-				
-			}
-
-			@Override
-			public void onSuccess(Vector<String> result) {
-				System.out.println(result.elementAt(0));
-				Image image = new Image(result.elementAt(0));
-				/*
-				Image image = new Image("data:image/png;base64,"
-						+"iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABGdBTUEAALGP"
-						+"C/xhBQAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9YGARc5KB0XV+IA"
-						+"AAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAF1J"
-						+"REFUGNO9zL0NglAAxPEfdLTs4BZM4DIO4C7OwQg2JoQ9LE1exdlYvBBeZ7jq"
-						+"ch9//q1uH4TLzw4d6+ErXMMcXuHWxId3KOETnnXXV6MJpcq2MLaI97CER3N0"
-						+"vr4MkhoXe0rZigAAAABJRU5ErkJggg==");
-				*/
-				image.addErrorHandler(new ErrorHandler() {
-				      public void onError(ErrorEvent event) {
-				    	  Window.alert(event.toDebugString());;
-				      }
-				    });
-				image.setHeight("5em");
-				FormPanel fp = new FormPanel();
-				fp.add(image);
-				CategoryForm.this.add(fp);
-				Window.alert("geladen");
-			}
-			
-		});
 	}
 	
 	/**
@@ -200,7 +172,6 @@ public class CategoryForm extends VerticalPanel {
 
 						verwaltung.auslesenCategory(shownCategory, new AsyncCallback<Vector<Category>>() {
 							public void onFailure(Throwable caught) {
-								DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "default");
 								Window.alert(caught.getMessage());
 								speichernAnlegenButton.setEnabled(true);
 								loeschenButton.setEnabled(true);
@@ -225,6 +196,7 @@ public class CategoryForm extends VerticalPanel {
 					 */
 					public void onSuccess(Category result) {
 						Window.alert("Kategorie wurde erfolgreich geändert");
+						
 						ltvm.updateCategory(result);
 						
 						speichernAnlegenButton.setEnabled(true);
@@ -239,11 +211,8 @@ public class CategoryForm extends VerticalPanel {
 		buttonPanel.add(loeschenButton);
 
 		loeschenButton.addClickHandler(new ClickHandler() {
+						
 			public void onClick(ClickEvent event) {
-				bild();
-			}
-			
-			public void onCClick(ClickEvent event) {
 				speichernAnlegenButton.setEnabled(false);
 				loeschenButton.setEnabled(false);
 
@@ -267,6 +236,147 @@ public class CategoryForm extends VerticalPanel {
 				});
 			}
 		});
+		
+		questionListPanel = new VerticalPanel();
+		questionFlexTable = new FlexTable();
+		questionListPanel.add(questionFlexTable);
+		this.add(questionListPanel);
+		
+	}
+	
+	public void ladenQuestions() {
+		verwaltung.auslesenAlleQuestionsByCategory(shownCategory, new AsyncCallback<Vector<Question>>() {
+
+			@Override
+			public void onFailure(Throwable caught) {
+				Window.alert(caught.getMessage());
+				
+			}
+
+			@Override
+			public void onSuccess(Vector<Question> result) {
+				CategoryForm.this.questionVector = result;
+				questionsAnzeigen();
+				
+			}
+			
+		});
+	}
+	
+	/**
+	 * Methode um den FlexTable, welcher alle der Category zugeordneten 
+	 * Questions auflistet, abzubilden. Dabei erhält jeder Eintrag mittels 
+	 * Button die Möglichkeit, diesen wieder zu entfernen oder zur Bearbeiten. 
+	 * Die Methode wird in der Ändern-Maske zu Beginn und anschließend 
+	 * maskenunabhängig bei jeder neuen Auswahl einer Lehrveranstaltung bzw. 
+	 * deren Löschung aufgerufen 
+	 */
+	public void questionsAnzeigen() {
+		questionFlexTable.removeAllRows();
+		questionFlexTable.setVisible(true);
+		questionFlexTable.setText(0, 0, "Frage: ");
+
+		
+		if ((questionVector != null)	&& (questionVector.size() > 0)) {
+			
+			// Für jede Question der Category...
+			for (Question q : questionVector) {
+				
+				//...wird im FlexTable ein Eintrag gesetzt und...
+				final int row = questionFlexTable.getRowCount();
+				questionFlexTable.setWidget(row, 0, new Label(q.getQuestionBody()));
+
+				//...ein Button, mit dem der User die Question wieder entfernen kann
+				Button loeschenButton = new Button("X");
+				loeschenButton.addClickHandler(new ClickHandler() {
+					public void onClick(ClickEvent event) {
+
+						int rowIndex = questionFlexTable.getCellForEvent(event).getRowIndex();
+						questionFlexTable.removeRow(rowIndex);
+
+						verwaltung.loeschenQuestion(questionVector.elementAt(rowIndex - 1), new AsyncCallback<Void>() {
+
+							@Override
+							public void onFailure(Throwable caught) {
+								Window.alert("Es ist ein Fehler aufgetreten, die Frage konnte nicht gelöscht werden\n" + caught.getMessage());
+								ladenQuestions();
+							}
+
+							@Override
+							public void onSuccess(Void result) {
+								// Frage erfolgreich gelöscht
+								
+							}
+							
+						});
+						questionVector.removeElementAt(rowIndex - 1);
+
+					}
+				});
+
+				questionFlexTable.setWidget(row, 1, loeschenButton);
+
+				//...ein Button, mit dem der User die Question bearbeiten kann
+				Button bearbeitenButton = new Button("Bearbeiten");
+				bearbeitenButton.addClickHandler(new ClickHandler() {
+					public void onClick(ClickEvent event) {
+
+						int rowIndex = questionFlexTable.getCellForEvent(event).getRowIndex();
+						setZurueckButton();
+						bearbeitenQuestions(questionVector.elementAt(rowIndex - 1));
+						
+
+					}
+				});
+
+				questionFlexTable.setWidget(row, 2, bearbeitenButton);
+			}
+		}
+		
+	}
+	
+	/**
+	 * Setzen des Zurück-Buttons um von der Question-Ändernmaske zur
+	 * Question-Liste zurückzukehren
+	 */
+	public void setZurueckButton() {
+		zurueckButton = new Button("Zurück");
+		zurueckButton.addClickHandler(new ClickHandler() {
+
+			@Override
+			public void onClick(ClickEvent event) {
+				questionListPanel.remove(zurueckButton);
+				questionListPanel.remove(qF);
+				ladenQuestions();
+				//questionFlexTable.setVisible(true);
+				
+			}
+			
+		});
+	}
+	
+	/**
+	 * Laden und Konfigurieren der QuestionForm (Ändern-Maske) anstelle
+	 * der QuestionListe
+	 * @param ques Question mit der die Maske aufgesetzt werden soll
+	 */
+	public void bearbeitenQuestions(Question ques) {
+		if (qF != null) {
+			questionListPanel.remove(qF);
+		}
+		questionFlexTable.setVisible(false);
+		questionListPanel.add(zurueckButton);
+		
+		qF = new QuestionForm(verwaltung);
+		qF.setShownQuestion(ques);
+		qF.fillForm();
+		qF.loadCategories();
+		qF.setCategoryForm(this);
+		qF.aendernMaske();
+		questionListPanel.add(qF);
+		if (ques.isImage()) {
+			qF.loadImage();
+		}		
 	}
 
 	/**

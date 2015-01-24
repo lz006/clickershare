@@ -1,6 +1,7 @@
 package de.hdm.clicker.server.db;
 
 import java.sql.*;
+import java.util.Vector;
 
 import com.google.appengine.api.rdbms.AppEngineDriver;
 
@@ -29,18 +30,13 @@ public class DBConnection {
 	 * @see StudiengangMapper.studiengangMapper()
 	 * @see ZeitslotMapper.zeitslotMapper()
 	 */
-	private static Connection con = null;
+	private static Vector<Connection> con = new Vector<Connection>();
+	private static int i = 0;
 	
 	/**
 	 * Die URL, mit deren Hilfe die Datenbank angesprochen wird.
 	 */
-	//private static String url = "jdbc:mysql://dd33022.kasserver.com:3306/d01c2319";
-	private static String url = "jdbc:google:rdbms://hdm-clicker:database/clicker_database?user=root&";
-	/*
-	 *  Es kam in der Vergangenheit immer wieder vor, dass man die auskommentierte "URL" 
-	 *  für den Hosted-Modus verwenden musste (...Erklärungen haben wir vergeblich gesucht)
-	 */
-	//"jdbc:google:rdbms://titanium-spider-370:stundenplantool/stundenplantooltest" + "," +  "u"  + "," + "stundenplan.tool";
+	private static String url = "jdbc:google:rdbms://hdm-clicker:database-usa/hdm-clicker?user=root&";
 	
 	/**
 	 * Diese statische Methode kann aufgrufen werden durch 
@@ -58,62 +54,52 @@ public class DBConnection {
 	 * 
 	 * @return DAS <code>DBConncetion</code>-Objekt.
 	 */
-	public static Connection connection() {
-		// Wenn es bisher keine Conncetion zur DB gab, ... 
+	public static Connection connection() throws RuntimeException {
 		try {
-			if ( con == null || con.isClosed() ) {
+			if ( con.elementAt(i) == null || con.elementAt(i).isClosed() || con.elementAt(i).isValid(0)) {
 				try {
-					// Ersteinmal muss der passende DB-Treiber geladen werden
 					DriverManager.registerDriver(new AppEngineDriver());
-					/*
-					 * Dann erst kann uns der DriverManager eine Verbindung mit den oben
-					 * in der Variable url angegebenen Verbindungsinformationen aufbauen.
-					 * 
-					 * Diese Verbindung wird dann in der statischen Variable con 
-					 * abgespeichert und fortan verwendet.
-					 */
-					con = DriverManager.getConnection(url);
-					//con = DriverManager.getConnection(url, "d01c2319", "hdm2014!XOXO");
+					
+					con.setElementAt(DriverManager.getConnection(url), i);
 				} 
 				catch (SQLException e1) {
-					con = null;
-					e1.printStackTrace();
+					con.setElementAt(null, i);
+					throw new RuntimeException("Datenbankbankproblem con1: " + e1.getMessage());
 				}
 			}
 		}
 		catch (SQLException e1) {
 			con = null;
-			e1.printStackTrace();
+			throw new RuntimeException("Datenbankbankproblem con2: " + e1.getMessage());
+		}
+		Connection c;
+		try {
+			c = con.elementAt(i);
+			i++;
+			if (con.size() <= i) {
+				i = 0;
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Datenbankbankproblem con3: " + e.getMessage());
 		}
 		
-		// Zurückgegeben der Verbindung
-		return con;
+		return c;
 	}
 	
-	/**
-	 * Diese statische Methode kann aufgrufen werden durch 
-	 * <code>DBConnection.closeConnection()</code>. Sie löst
-	 * eine bestehende Verbindung zur Datenbank auf.
-	 * 
-	 * @throws	RuntimeException - beim "kappen" der DB-
-	 * 			Verbindung kann ein Fehler entstehen,
-	 * 			welcher mittelbar an die aufrufende Methode
-	 * 			weitergeleitet wird
-	 */
-	public static void closeConnection() throws RuntimeException {
+	public static void openOneOfTenConnection() throws RuntimeException {
 		try {
-			if (con != null && (!con.isClosed())) {
+			if (con.size() < 10) {
 				try {
-					con.close();
-					con = null;
-				}
+					DriverManager.registerDriver(new AppEngineDriver());
+					con.add(DriverManager.getConnection(url));
+				} 
 				catch (SQLException e1) {
-					throw new RuntimeException("Fehler beim Trennen der DB-Verbindung aufgetreten: " + e1.getMessage());
+					con = null;
+					throw new RuntimeException("Datenbankbankproblem oootc: " + e1.getMessage());
 				}
 			}
-		}
-		catch (SQLException e1) {
-			throw new RuntimeException("Fehler beim Trennen der DB-Verbindung aufgetreten: " + e1.getMessage());
+		} catch (Exception e) {
+			throw new RuntimeException("Datenbankbankproblem oootc2: " + e.getMessage());
 		}
 	}
 }

@@ -38,6 +38,10 @@ public class LecturerTreeViewModel implements TreeViewModel {
 	 */
 	private LecturerForm lF;
 	private CategoryForm cF;
+	private QuestionForm qF;
+	private QuizForm qzF;
+	private QuizControlForm qcF;
+	private ReportForm rpf;
 	
 	/**
 	 * Referenz auf die Entry-Point-Klasse um Zugriff auf deren Methoden zu haben
@@ -48,15 +52,15 @@ public class LecturerTreeViewModel implements TreeViewModel {
 	 * Referenz auf das Proxy-Objekt um mit dem Server kommunizieren zu können
 	 */
 	private VerwaltungAsync verwaltung = null;
-	private ReportAsync report = null;
 	
 	/**
 	 * Container welche alle Objekte enthalten, welche im Tree als Blätter oder
 	 * Knoten abgebildet werden
 	 */
-	private ListDataProvider<Lecturer> lecturerDataProvider;
-	private ListDataProvider<Category> categoryDataProvider;
-	private ListDataProvider<String> dummyDataProvider;
+	private ListDataProvider<Lecturer> lecturerDataProvider = null;
+	private ListDataProvider<Category> categoryDataProvider = null;
+	private ListDataProvider<Quiz> quizDataProvider = null;
+	private ListDataProvider<String> dummyDataProvider = null;
 	
 	/**
 	 * Referenz auf das CellTree-Objekt um Zugriff auf dessen Methoden zu haben
@@ -106,10 +110,9 @@ public class LecturerTreeViewModel implements TreeViewModel {
 	 * 
 	 * @param	verwaltungA - Referenz auf ein Proxy-Objekt. 
 	 */
-	public LecturerTreeViewModel(VerwaltungAsync verwaltungA, ReportAsync reportA) {
+	public LecturerTreeViewModel(VerwaltungAsync verwaltungA) {
 
 		this.verwaltung = verwaltungA;
-		this.report = reportA;
 
 		// Initialisieren, definieren und "adden" eines "SelectionChangeHandlers"
 		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
@@ -130,6 +133,11 @@ public class LecturerTreeViewModel implements TreeViewModel {
 
 					setSelectedCategory((Category)selection);
 				} 
+				
+				else if (selection instanceof Quiz) {
+
+					setSelectedQuiz((Quiz)selection);
+				}
 								
 				/*
 				 *  Bei Klick auf ein "String-Objekt" wird die entsprechende Formklasse 
@@ -154,16 +162,55 @@ public class LecturerTreeViewModel implements TreeViewModel {
 					});
 				}
 				
+				else if (selection instanceof String && (String) selection == "Quiz-Steuerung") {
+					
+					setSelectedQuizControlForm();
+				}
+				
+				else if (selection instanceof String && (String) selection == "Quiz-Reporting") {
+					
+					setSelectedReportForm();
+				}
+				
 				else if (selection instanceof String && (String) selection == "Kategorie") {
 					
 					categoryAnlegenMaske();
+				} 
+				else if (selection instanceof String && (String) selection == "Frage") {
+					
+					questionAnlegenMaske();
+				} 
+				else if (selection instanceof String && (String) selection == "Quiz") {
+					
+					quizAnlegenMaske();
 				} 
 				
 			}
 		});
 
 	}
-
+	
+	
+	/**
+	 * Methode welche wiederum alle notwendigen Methoden aufruft, die es dem
+	 * User ein Reporting ermöglichen
+	 */
+	public void setSelectedReportForm() {
+		clicker.setReportFormToMain();
+		this.rpf.setLtvm(this);
+		this.rpf.ladenStartdaten();
+	}
+	
+	/**
+	 * Methode welche wiederum alle notwendigen Methoden aufruft, die es dem
+	 * User ermöglichen aktive Quizze zu steuern
+	 */
+	public void setSelectedQuizControlForm() {
+		clicker.setQuizControlFormToMain();
+		this.qcF.setLtvm(this);
+		this.qcF.ladenQuizze();
+	}
+	
 	/**
 	 * Methode welche wiederum alle notwendigen Methoden aufruft, die es dem
 	 * User ermöglichen einen Lecturer zu bearbeiten
@@ -179,6 +226,33 @@ public class LecturerTreeViewModel implements TreeViewModel {
 		this.lF.aendernMaske();
 		this.lF.hideDeleteButton();
 	}
+	
+	/**
+	 * Methode welche wiederum alle notwendigen Methoden aufruft, die es dem
+	 * User ermöglichen ein Quiz zu bearbeiten
+	 * 
+	 * @param	quiz - Referenz auf ein Quiz-Objekt, welches Gegenstand der Bearbeitung ist 
+	 */
+	public void setSelectedQuiz(Quiz quiz) {
+		
+		clicker.setQuizFormToMain();
+		this.qzF.setLtvm(this);
+		this.qzF.setShownQuiz(quiz);
+		this.qzF.fillForm();
+		this.qzF.aendernMaske();
+		this.qzF.ladenQuestions();
+	}
+	
+	/**
+	 * Methode welche wiederum alle notwendigen Methoden aufruft, die es dem
+	 * User ermöglichen ein Quiz anzulegen
+	 */
+	public void quizAnlegenMaske() {
+		clicker.setQuizFormToMain();
+		this.qzF.setLtvm(this);
+		this.qzF.anlegenMaske();
+		this.qzF.ladenCategories();
+	}
 
 	/**
 	 * Methode welche wiederum alle notwendigen Methoden aufruft, die es dem
@@ -193,6 +267,7 @@ public class LecturerTreeViewModel implements TreeViewModel {
 		this.cF.setShownCategory(category);
 		this.cF.fillForm();
 		this.cF.aendernMaske();
+		this.cF.ladenQuestions();
 	}
 	
 	/**
@@ -203,6 +278,32 @@ public class LecturerTreeViewModel implements TreeViewModel {
 		clicker.setCategoryFormToMain();
 		this.cF.setLtvm(this);
 		this.cF.anlegenMaske();
+	}
+	
+	/**
+	 * Methode welche wiederum alle notwendigen Methoden aufruft, die es dem
+	 * User ermöglichen eine Question zu bearbeiten
+	 * 
+	 * @param	question - Referenz auf ein Category-Objekt, welches Gegenstand der Bearbeitung ist 
+	 */
+	public void setSelectedQuestion(Question question) {
+		
+		clicker.setQuestionFormToMain();
+		this.qF.setLtvm(this);
+		this.qF.setShownQuestion(question);
+		this.qF.fillForm();
+		this.qF.aendernMaske();
+	}
+	
+	/**
+	 * Methode welche wiederum alle notwendigen Methoden aufruft, die es dem
+	 * User ermöglichen eine Question anzulegen
+	 */
+	public void questionAnlegenMaske() {
+		clicker.setQuestionFormToMain();
+		this.qF.setLtvm(this);
+		this.qF.loadCategories();
+		this.qF.anlegenMaske();
 	}
 
 	/**
@@ -239,6 +340,18 @@ public class LecturerTreeViewModel implements TreeViewModel {
 
 			dummyDataProvider.getList().add(quizSteuerung);
 			dummyDataProvider.getList().add(eigenesProfil);
+
+			return new DefaultNodeInfo<String>(dummyDataProvider, new DummyCell(), selectionModel, null);
+		}
+		
+		// "Report enthält nur Quiz-Reporting als Kind-Elemente		
+		if (value instanceof String && (String) value == "Report") {
+
+			dummyDataProvider = new ListDataProvider<String>();
+
+			String quizReporting = "Quiz-Reporting";
+
+			dummyDataProvider.getList().add(quizReporting);
 
 			return new DefaultNodeInfo<String>(dummyDataProvider, new DummyCell(), selectionModel, null);
 		}
@@ -310,21 +423,21 @@ public class LecturerTreeViewModel implements TreeViewModel {
 		// "Quizze" enthält Quiz-Objekte als Kind-Elemente
 		if (value instanceof String && (String) value == "Quizze") {
 
-			/*lecturerDataProvider = new ListDataProvider<Lecturer>();
+			quizDataProvider = new ListDataProvider<Quiz>();
 
-			verwaltung.auslesenAlleLecturer(new AsyncCallback<Vector<Lecturer>>() {
+			verwaltung.auslesenAlleQuizzeByLecturer(new AsyncCallback<Vector<Quiz>>() {
 				public void onFailure(Throwable caught) {
 					Window.alert(caught.getMessage());
 				}
 
-				public void onSuccess(Vector<Lecturer> lecturers) {
-					for (Lecturer lecturer : lecturers) {
-						lecturerDataProvider.getList().add(lecturer);
+				public void onSuccess(Vector<Quiz> quizze) {
+					for (Quiz quiz : quizze) {
+						quizDataProvider.getList().add(quiz);
 					}
 				}
 			});
 
-			return new DefaultNodeInfo<Lecturer>(lecturerDataProvider, new LecturerCell(), selectionModel, null);*/
+			return new DefaultNodeInfo<Quiz>(quizDataProvider, new QuizCell(), selectionModel, null);
 		}
 		
 		// "Report" enthält... als Kind-Elemente
@@ -455,6 +568,67 @@ public class LecturerTreeViewModel implements TreeViewModel {
 			categoryDataProvider.refresh();
 		}
 	}
+	
+	/**
+	 * Methode welche die List des "quizDataProviders" hinsichtlich eines geänderten
+	 * Quizzes aktualisiert.
+	 * 
+	 * @param	quiz - Objekt, welches "seine alte Version" ersetzt  
+	 */
+	public void updateQuiz(Quiz quiz) {
+		if (quizDataProvider != null) {
+			List<Quiz> quizList = quizDataProvider.getList();
+			int i = 0;
+			for (Quiz a : quizList) {
+				if (a.getId() == quiz.getId()) {
+					quizList.set(i, quiz);
+					quizDataProvider.refresh();
+					break;
+				} else {
+					i++;
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Methode welche die List des "quizDataProviders" dahingehend aktualisiert,
+	 * dass ein Quiz entfernt werden muss, da dieses aus Systemsicht nicht mehr
+	 * existent ist. In Folge wird diese auch nicht mehr im CellTree angezeigt.
+	 * 
+	 * @param	quiz - Objekt, welches gelöscht werden soll  
+	 */
+	public void loeschenQuiz(Quiz quiz) {
+
+		int i = 0;
+
+		for (Quiz q : quizDataProvider.getList()) {
+			if (q.getId() == quiz.getId()) {
+
+				quizDataProvider.getList().remove(i);
+				quizDataProvider.refresh();
+				break;
+			} else {
+				i++;
+			}
+		}
+
+	}
+	
+	/**
+	 * Methode welche die List des "quizDataProviders" dahingehend aktualisiert,
+	 * dass ein Quiz hinzugefügt werden muss, da dieses neu angelegt wurde und
+	 * folglich im CellTree angezeigt werden muss.
+	 * 
+	 * @param	quiz - Objekt, welches neu hinzugefügt wird  
+	 */
+	public void addQuiz(Quiz quiz) {
+		if (quizDataProvider != null) {
+			quizDataProvider.getList().add(
+			quizDataProvider.getList().size(), quiz);
+			quizDataProvider.refresh();
+		}
+	}
 
 	/**
 	 * Methode welche dem CellTree "Auskunft" darüber gibt, ob es sich bei einem Kind-Element-Typ
@@ -466,6 +640,9 @@ public class LecturerTreeViewModel implements TreeViewModel {
 	public boolean isLeaf(Object value) {
 
 		if (value instanceof String && (String) value == "Quiz-Steuerung") {
+			return true;
+		}
+		if (value instanceof String && (String) value == "Quiz-Reporting") {
 			return true;
 		}
 		if (value instanceof String && (String) value == "Eigenes Profil") {
@@ -484,6 +661,9 @@ public class LecturerTreeViewModel implements TreeViewModel {
 			return true;
 		}
 		else if (value instanceof Category) {
+			return true;
+		}
+		else if (value instanceof Quiz) {
 			return true;
 		}
 		else {
@@ -510,6 +690,46 @@ public class LecturerTreeViewModel implements TreeViewModel {
 	 */
 	public void setCategoryForm(CategoryForm cF) {
 		this.cF = cF;
+	}
+	
+	/**
+	 * Setzen der Referenz auf die Benutzeroberfläche für das
+	 * Anlegen bzw. Editieren von Questions
+	 * 
+	 * @param	qF - Referenz auf eine CategoryForm-Instanz  
+	 */
+	public void setQuestionForm(QuestionForm qF) {
+		this.qF = qF;
+	}
+	
+	/**
+	 * Setzen der Referenz auf die Benutzeroberfläche für das
+	 * Anlegen bzw. Editieren von Quizze
+	 * 
+	 * @param	qzF - Referenz auf eine QuizForm-Instanz  
+	 */
+	public void setQuizForm(QuizForm qzF) {
+		this.qzF = qzF;
+	}
+	
+	/**
+	 * Setzen der Referenz auf die Benutzeroberfläche für das
+	 * Steuern von Quizze
+	 * 
+	 * @param	qcF - Referenz auf eine QuizControlForm-Instanz  
+	 */
+	public void setQuizControlForm(QuizControlForm qcF) {
+		this.qcF = qcF;
+	}
+	
+	/**
+	 * Setzen der Referenz auf die Benutzeroberfläche für das
+	 * Reporting von Quizze
+	 * 
+	 * @param	rpf - Referenz auf eine ReportForm-Instanz  
+	 */
+	public void setReportForm(ReportForm rpf) {
+		this.rpf = rpf;
 	}
 	
 	/**

@@ -14,12 +14,8 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
-import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.HasAlignment;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PasswordTextBox;
@@ -28,6 +24,11 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.googlecode.mgwt.ui.client.MGWT;
+import com.googlecode.mgwt.ui.client.MGWTSettings;
+import com.googlecode.mgwt.ui.client.animation.AnimationHelper;
+import com.googlecode.mgwt.ui.client.widget.animation.Animations;
+import com.googlecode.mgwt.ui.client.widget.panel.flex.FlexPanel;
 
 import de.hdm.clicker.shared.*;
 
@@ -43,7 +44,6 @@ public class Clicker implements EntryPoint {
 	 * Referenz auf das Proxy-Objekte um mit dem Server kommunizieren zu können
 	 */
 	private final VerwaltungAsync verwaltung = GWT.create(Verwaltung.class);
-	private final ReportAsync report = GWT.create(Report.class);
 	
 	/**
 	 * CellTree welcher dauerhaft auf der linken Seite der Benutzeroberfläche
@@ -147,11 +147,50 @@ public class Clicker implements EntryPoint {
 	private Label welcomeLabel;
 
 	/**
+	 * Referenz auf die Schaltfläche für die Quiz-Steuerung
+	 */
+	
+	private QuizControlForm qcF;
+	
+	/**
 	 * Referenz auf das Formular für einen Lecturer
 	 */
 	private LecturerForm lF;
+	
+	/**
+	 * Referenz auf das Formular für ein Quiz
+	 */
+	private QuizForm qzF;
+	
+	/**
+	 * Referenz auf das Formular für eine Category
+	 */
 	private CategoryForm cF;
 	
+	/**
+	 * Referenz auf das Formular für eine Question
+	 */
+	private QuestionForm qF;
+	
+	/**
+	 * Referenz auf die Quiz-Auswahl-Form
+	 */
+	private ChooseQuizForm cqf = null;
+	
+	/**
+	 * Referent auf Play-QuizForm
+	 */
+	private PlayQuizForm pqf = null;
+	
+	/**
+	 * Referenz auf ResultsForm
+	 */
+	ResultsForm rf = null;
+	
+	/**
+	 *Referenz auf ReportForm
+	 */
+	ReportForm rpf = null;
 	
 	/**
 	 * Panel welches die Plattform für die jeweiligen Formulare bietet,
@@ -209,298 +248,185 @@ public class Clicker implements EntryPoint {
 	 */
 	
 	/**
+	 * Angemeldeter Teinehmer
+	 */
+	String signedParticipant = null;
+	
+	/**
+	 * Elemente für die mobile Ansicht
+	 */
+	AnimationHelper animationHelper = null;
+	ChooseQuizFormMobile cqfm = null;
+	AuthoriseFormMobile afm = null;
+	QuizPasswordFormMobile qpfm = null;
+	PlayQuizFormMobile pqfm = null;
+	ResultsFormMobile rfm = null;
+	
+	/**
 	   * Da diese Klasse die Implementierung des Interface <code>EntryPoint</code>
 	   * zusichert, benötigen wir eine Methode
 	   * <code>public void onModuleLoad()</code>. Diese ist das GWT-Pendant der
 	   * <code>main()</code>-Methode normaler Java-Applikationen.
 	   */
 	public void onModuleLoad() {
-		
-		mainPanel = new ScrollPanel();
-		
-		// Initialisierung der Buttons zur Rollenbestimmung
-		entryParticipantButton = new Button("Teilnehmer");
-		entryLecturerButton = new Button("Lehrende");
-		entryAdminButton = new Button("Admin");
-		addClickHandlerToEAB();
-		addClickHandlerToELB();
-		
-		// Größe der Buttons definieren
-		entryParticipantButton.setHeight("100px");
-		entryParticipantButton.setWidth("400px");
-		entryLecturerButton.setHeight("100px");
-		entryLecturerButton.setWidth("400px");
-		entryAdminButton.setHeight("100px");
-		entryAdminButton.setWidth("400px");
-		
-		// Setzen von Style-Attributen zu den EntryButtons
-		entryParticipantButton.getElement().getStyle().setFontSize(15, Unit.PT);
-		entryLecturerButton.getElement().getStyle().setFontSize(15, Unit.PT);
-		entryAdminButton.getElement().getStyle().setFontSize(15, Unit.PT);
-		
-		entryParticipantButton.getElement().getStyle().setMarginTop(10, Unit.PX);
-		entryParticipantButton.getElement().getStyle().setMarginBottom(10, Unit.PX);
-		
-		entryLecturerButton.getElement().getStyle().setMarginTop(10, Unit.PX);
-		entryLecturerButton.getElement().getStyle().setMarginBottom(10, Unit.PX);
-		
-		entryAdminButton.getElement().getStyle().setMarginTop(10, Unit.PX);
-		entryAdminButton.getElement().getStyle().setMarginBottom(10, Unit.PX);
-		
-		/*
-		 * Initialisieren des VP welches die Button zur Rollenbestimmung aufnimmt
-		 */		
-		entryVP = new VerticalPanel();
-		entryVP.add(entryParticipantButton);
-		entryVP.add(entryLecturerButton);
-		entryVP.add(entryAdminButton);
-		
-		RootPanel.get().add(entryVP);
-		RootPanel.get().setWidgetPosition(entryVP, (Window.getClientWidth() / 2) - (entryVP.getOffsetWidth() / 2), (Window.getClientHeight() / 2) - (entryVP.getOffsetHeight() / 2));
-		
-		Window.addResizeHandler(new ResizeHandler() {
+		if (!MGWT.getFormFactor().isPhone()) {
+				
+			mainPanel = new ScrollPanel();
 			
+			// Initialisierung der Buttons zur Rollenbestimmung
+			entryParticipantButton = new Button("Teilnehmer");
+			entryLecturerButton = new Button("Lehrende");
+			entryAdminButton = new Button("Admin");
+			addClickHandlerToEAB();
+			addClickHandlerToELB();
+			addClickHandlerToESB();
+			
+			// Größe der Buttons definieren
+			entryParticipantButton.setHeight("100px");
+			entryParticipantButton.setWidth("400px");
+			entryLecturerButton.setHeight("100px");
+			entryLecturerButton.setWidth("400px");
+			entryAdminButton.setHeight("100px");
+			entryAdminButton.setWidth("400px");
+			
+			// Setzen von Style-Attributen zu den EntryButtons
+			entryParticipantButton.getElement().getStyle().setFontSize(15, Unit.PT);
+			entryLecturerButton.getElement().getStyle().setFontSize(15, Unit.PT);
+			entryAdminButton.getElement().getStyle().setFontSize(15, Unit.PT);
+			
+			entryParticipantButton.getElement().getStyle().setMarginTop(10, Unit.PX);
+			entryParticipantButton.getElement().getStyle().setMarginBottom(10, Unit.PX);
+			
+			entryLecturerButton.getElement().getStyle().setMarginTop(10, Unit.PX);
+			entryLecturerButton.getElement().getStyle().setMarginBottom(10, Unit.PX);
+			
+			entryAdminButton.getElement().getStyle().setMarginTop(10, Unit.PX);
+			entryAdminButton.getElement().getStyle().setMarginBottom(10, Unit.PX);
+			
+			/*
+			 * Initialisieren des VP welches die Button zur Rollenbestimmung aufnimmt
+			 */		
+			entryVP = new VerticalPanel();
+			entryVP.add(entryParticipantButton);
+			entryVP.add(entryLecturerButton);
+			entryVP.add(entryAdminButton);
+			
+			RootPanel.get().add(entryVP);
+			RootPanel.get().setWidgetPosition(entryVP, (Window.getClientWidth() / 2) - (entryVP.getOffsetWidth() / 2), (Window.getClientHeight() / 2) - (entryVP.getOffsetHeight() / 2));
+			
+			Window.addResizeHandler(new ResizeHandler() {
+				
+				@Override
+				public void onResize(ResizeEvent event) {
+					RootPanel.get().setWidgetPosition(entryVP, (Window.getClientWidth() / 2) - (entryVP.getOffsetWidth() / 2), (Window.getClientHeight() / 2) - (entryVP.getOffsetHeight() / 2));
+					
+				}
+			});
+			
+			initDBCon();
+		}
+		else {
+			MGWT.applySettings(MGWTSettings.getAppSetting());
+	        animationHelper = new AnimationHelper();
+	        RootPanel.get().add(animationHelper);
+	        afm = new AuthoriseFormMobile(this.verwaltung);
+	        afm.setClicker(this);
+	        	        
+	        animationHelper.goTo(afm, Animations.SLIDE);  
+	        initDBCon();
+		}
+	}
+	
+	public void setChooseQuizFormMobileToMain() {
+		if (afm != null) {
+			afm.removeFromParent();
+		}
+		if (rfm != null) {
+			rfm.removeFromParent();
+		}
+		this.cqfm = new ChooseQuizFormMobile(verwaltung);
+		this.cqfm.setClicker(this);
+		animationHelper.goTo(cqfm, Animations.SLIDE);
+		cqfm.ladenQuizze();
+		afm = null;
+		rfm = null;
+		
+	}
+	
+	public void setQuizPasswordFormMobileToMain(QuizPasswordFormMobile qpfm) {
+		if (cqfm != null) {
+			cqfm.removeFromParent();
+		}
+		this.qpfm = qpfm;
+		this.qpfm.setClicker(this);
+		animationHelper.goTo(qpfm, Animations.SLIDE);
+		cqfm = null;
+	}
+	
+	public void setPlayQuizFormMobileToMain(PlayQuizFormMobile pqfm) {
+		if (cqfm != null) {
+			cqfm.removeFromParent();
+		}
+		if (qpfm != null) {
+			qpfm.removeFromParent();
+		}
+		this.pqfm = pqfm;
+		this.pqfm.setClicker(this);
+		this.pqfm.startQuiz();
+		animationHelper.goTo(pqfm, Animations.SLIDE);
+				
+		cqfm = null;
+		qpfm = null;
+	}
+	
+	public void setResultsFormMobileToMain(ResultsFormMobile rfm) {
+		if (pqfm != null) {
+			pqfm.removeFromParent();
+		}
+		this.rfm = rfm;
+		this.rfm.setClicker(this);
+		animationHelper.goTo(rfm, Animations.SLIDE);
+				
+		pqfm = null;
+	}
+	
+	public void initDBCon() {
+		verwaltung.openDBCon(new AsyncCallback<Void>() {
+
 			@Override
-			public void onResize(ResizeEvent event) {
-				RootPanel.get().setWidgetPosition(entryVP, (Window.getClientWidth() / 2) - (entryVP.getOffsetWidth() / 2), (Window.getClientHeight() / 2) - (entryVP.getOffsetHeight() / 2));
+			public void onFailure(Throwable caught) {
+				Window.alert("initDBCon " + caught.getMessage());
 				
 			}
+
+			@Override
+			public void onSuccess(Void result) {
+				// Eine von zehn DB-Verb. wurde aufgebaut
+				checkQuizzes();
+				
+			}
+			
 		});
 	}
 	
-	public void oldInit() {
-		// Initialisieren des Buttons zum ein- und ausblenden des CellTrees
-		visibilityTreeButton = new Button("Navigation ausblenden");
-		
-		// Hinzufügen eines ClickHandlers zum "visibilityTreeButton"
-		visibilityTreeButton.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				visibilityTree();
-			}
-		});
+	public void checkQuizzes() {
+		verwaltung.checkQuizzes(new AsyncCallback<Void>() {
 
-		// Initialisieren des Buttons zum ein- und ausblenden der InfoPanels
-		visibilityInfoPanelsButton = new Button("Infotext ausblenden");
-		
-		// Hinzufügen eines ClickHandlers zum "visibilityInfoPanelsButton"
-		visibilityInfoPanelsButton.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				visibilityInfoPanels();
-				
-			}
-		});
-		
-		// Anrodnen der Buttons
-		buttonGrid = new Grid(1, 2);
-		buttonGrid.setWidget(0, 0, visibilityTreeButton);
-		buttonGrid.setWidget(0, 1, visibilityInfoPanelsButton);
-
-		// Initialisierung der "Träger-Info-Panels" am rechten Bildschirmrand
-		traegerInfoPanel = new VerticalPanel();
-		
-		// Initialisierung oberen "Info-Panels" am rechten Bildschirmrand
-		obenInfoPanel = new VerticalPanel();
-		
-		/*
-		 *  Setzen eines eigenen StyleName für das obere "Info-Panels" um per
-		 *  CSS ein eignens Aussehen definieren zu können
-		 */
-		obenInfoPanel.setStyleName("infotextOben");
-
-		// Initialisierung unteren "Info-Panels" am rechten Bildschirmrand
-		untenInfoPanel = new VerticalPanel();
-		
-		/*
-		 *  Setzen eines eigenen StyleName für das untere "Info-Panels" um per
-		 *  CSS ein eignens Aussehen definieren zu können
-		 */
-		untenInfoPanel.setStyleName("infotextUnten");
-
-		// Anordnen der InfoPanels
-		traegerInfoPanel.add(obenInfoPanel);
-		traegerInfoPanel.add(untenInfoPanel);
-
-		// Initialisierung des Hauptpanels in der Bildschirmmitte und des Panels		
-		mainPanel = new ScrollPanel();
-		
-		// Initialisierung des Panels, welches den CellTree aufnimmt 
-		navi = new ScrollPanel();
-
-		// Initialisierung des Labels für den "Willkommenstext"
-		welcomeLabel = new Label("Herzlich willkommen im Stundenplantool des Studiengangs Wirtschaftsinformatik und digitale Medien des 4. Semesters!");
-		
-		/*
-		 *  Setzen eines eigenen StyleName für das "welcomeLabel" um per
-		 *  CSS ein eignens Aussehen definieren zu können
-		 */
-		welcomeLabel.setStyleName("start");
-		
-		// Dem Hauptpanel (Arbeitsbereich) wird zu Beginn der Willkommenstext zugewiesen
-		mainPanel.add(welcomeLabel);
-		
-		// Initialisierung eines Objekts vom Typ "TreeViewModel"
-		atvm = new AdminTreeViewModel(verwaltung);
-		
-		// Initialisierung des CellTrees
-		cellTree = new CellTree(atvm, "Root");
-		
-		// Anordnen des CellTrees
-		navi.add(cellTree);
-		
-		// Setzen einer Referenz auf die "RootNode" in die "TreeViewModel-Instanz"
-		atvm.setRootNode(cellTree.getRootTreeNode());
-		
-		// Setzen einer Referenz auf den CellTree in die "TreeViewModel-Instanz"
-		atvm.setCellTree(cellTree);
-
-		// Initialisierung eines Image-Objekts
-		image = new Image();
-		
-		// Setzen der Quelle des Titelbilds
-		image.setUrl("http://www.pm-graphics.com/1.png");
-		
-		// Setzen der Größe des Titelbilds
-		image.setHeight("5em");
-		
-		// Setzen eines "MouseOver-Textes" zum Titelbild
-		image.setAltText("WI-Logo");
-
-		/*
-		 *  Initialisierung des "HTML-Tag-Objekts", welcher den Namen der 
-		 *  Projektbeteiligten im Footer auflistet
-		 */
-		copyright = new HTML("IT-Projekt im 4. Semester &copy; 2014 by Timm Roth (tr047), Tobias Moser (tm066), "
-				+ "Lucas Zanella (lz006), Stefan Sonntag (ss305), Gino Sidney (gk024) & Mathias Zimmermann (mz048)!");
-		
-		/*
-		 *  Setzen eines eigenen StyleName für das "HTML-Tag-Objekt" um per
-		 *  CSS ein eignens Aussehen definieren zu können
-		 */
-		copyright.addStyleName("cpLabel");
-
-		// Initialisierung eines Panels, welches im Fuß-Bereich alle Widgets aufnimmt
-		footPanel = new VerticalPanel();
-		
-		// Hinzufügen von Widgets zum Panel im Fuß-Bereich
-		footPanel.add(buttonGrid);
-		footPanel.add(copyright);
-		
-		/*
-		 *  Setzen eines eigenen StyleName für das "footPanel-Objekt" um per
-		 *  CSS ein eignens Aussehen definieren zu können
-		 */
-		footPanel.addStyleName("foot");
-
-		// Initialisierung des Titels
-		titel = new HTML("Stundenplan der HdM");
-		
-		/*
-		 *  Setzen eines eigenen StyleName für den Tiel um per
-		 *  CSS ein eignens Aussehen definieren zu können
-		 */
-		titel.addStyleName("Titel");
-
-		// Initialisierung des Panels welches das Titelbild aufnimmt im Kopf-Bereich aufnimmt
-		left = new HorizontalPanel();
-		left.add(image);
-
-		/*
-		 *  Initialisierung des Panels welches den "HTML-Titel-Tag" aufnimmt und rechts vom 
-		 *  Titelbild angeordnet wird
-		 */
-		right = new HorizontalPanel();
-		right.add(titel);
-
-		// Initialisierung des "Träger-Panels" im Kopfbereich
-		traeger = new HorizontalPanel();
-		
-		// Anordnen der Panels mit Titelbild und HTML-Titel-Tag
-		traeger.add(left);
-		traeger.add(right);
-
-		// Panel den Kopfbereich zuweisen
-		p.addNorth(traeger, 5);
-		
-		// Panel den Fußbereich zuweisen
-		p.addSouth(footPanel, 5);
-		
-		// Panel den linken Bildschirmbereich zuweisen
-		p.addWest(navi, 25);
-		
-		// Panel den rechten Bildschirmbereich zuweisen
-		p.addEast(traegerInfoPanel, 30);
-		
-		// Panel den Hauptbereich in der Bildschirmmitte (Arbeitsbereich) zuweisen
-		p.add(mainPanel);
-
-		// Initialtext dem oberen InfoPanels hinzufügen
-		setTextToInfoPanelOben("</br><b><u>Anleitung:</b></u>"
-				+ "</br>Links unter dem Menüpunkt <b><i>„Editor - Anlegen“</b></i> können Sie Lehrveranstaltungen,"
-				+ "Dozenten, Belegungen, Räume, Semesterverbände und Studiengänge anlegen."
-				+"</br>"
-				+ "</br>Unter <b><i>„Editor – Verwalten“</b></i> können Sie die zuvor angelegten Datensätze ändern und löschen."
-				+ "</br>"
-				+ "</br>"
-				+ "</br>Der Punkt <b><i>„Report“</b></i> ermöglicht es Ihnen, sich Studenten-, Dozenten- und Raumpläne generieren und ausgeben zu lassen."
-				+ "</br>"
-				+ "</br>"
-				+ "</br>"
-				+ "</br>Wenn Sie links unten auf den Button <b><i>„Navigation ausblenden“</b></i> klicken, wird das Navigationsmenü links (Editor/ Report) komplett ausgeblendet."
-				+ "</br>Mit einem anschließenden Klick auf denselben Button, wird die Navigation wieder eingeblendet."
-				+ "</br>"
-				+ "</br>Wenn Sie links unten auf den Button <b><i>„Infotext ausblenden“</b></i> klicken, werden die Hinweise rechts komplett ausgeblendet."
-				+ "</br>Mit einem anschließenden Klick auf denselben Button, werden die Hinweise wieder eingeblendet.");
-
-	
-		
-		
-		/*
-		 *   Erzeugen eines LayoutPanels, welches die Wurzel
-		 *   aller LayoutPanles darstellt
-		 */
-		rlp = RootLayoutPanel.get();
-		
-		// Dem RootLayoutPanel das DockLayoutPanel unterordnen
-		rlp.add(p);
-		
-		// Dem <body>-Bereich der stundenplatool2.html das RootLayoutPanel zuweisen
-		RootPanel.get().add(rlp);
-
-		// Setzen einer Selbst-Referenz zur "TreeViewModel-Instanz"
-		atvm.setClicker(this);
-		
-		/*
-		 *  Registrieren eines ClosingHandlers, damit beim schließen des 
-		 *  Fensters die Datenbankverbindung geschlossen wird.
-		 */
-		Window.addWindowClosingHandler(new Window.ClosingHandler() {			
-			public void onWindowClosing(Window.ClosingEvent closingEvent) {
-				
-				closingEvent.setMessage("Wirklich beenden?");
-				
-				verwaltung.closeConnection(new AsyncCallback<Void>() {
-					public void onFailure(Throwable caught) {
-						Window.alert(caught.getMessage());
-					}
-					public void onSuccess(Void result) {
-						
-					}
-				});
-			}
-			
-		});
-		
-		Window.addResizeHandler(new ResizeHandler() {
-			
 			@Override
-			public void onResize(ResizeEvent event) {
-				RootPanel.get().setWidgetPosition(entryVP, (Window.getClientWidth() / 2) - (entryVP.getOffsetWidth() / 2), (Window.getClientHeight() / 2) - (entryVP.getOffsetHeight() / 2));
+			public void onFailure(Throwable caught) {
+				Window.alert("checkQuizzes " + caught.getMessage());
 				
 			}
+
+			@Override
+			public void onSuccess(Void result) {
+				// Eine von zehn DB-Verb. aufgebaut
+				
+			}
+			
 		});
-
 	}
-
+	
 	/**
 	 * Methode welche den Bereich des CellTrees ein- und ausblendet
 	 */
@@ -536,6 +462,28 @@ public class Clicker implements EntryPoint {
 			return;
 		}
 	}
+	
+	/**
+	 * Methode welche das QuizControl-Formular in den Hauptbereich läd
+	 */
+	public void setQuizControlFormToMain() {
+		qcF = new QuizControlForm(verwaltung);
+		ltvm.setQuizControlForm(qcF);
+		
+		mainPanel.clear();
+		mainPanel.add(qcF);
+	}
+	
+	/**
+	 * Methode welche die Reporting-GUI in den Hauptbereich läd
+	 */
+	public void setReportFormToMain() {
+		rpf = new ReportForm(verwaltung);
+		ltvm.setReportForm(rpf);
+		
+		mainPanel.clear();
+		mainPanel.add(rpf);
+	}
 
 	/**
 	 * Methode welche das Lecturer-Formular in den Hauptbereich läd
@@ -554,6 +502,18 @@ public class Clicker implements EntryPoint {
 	}
 	
 	/**
+	 * Methode welche das Quiz-Formular in den Hauptbereich läd
+	 */
+	public void setQuizFormToMain() {
+		qzF = new QuizForm(verwaltung);
+		ltvm.setQuizForm(qzF);	
+		
+		
+		mainPanel.clear();
+		mainPanel.add(qzF);
+	}
+	
+	/**
 	 * Methode welche das Category-Formular in den Hauptbereich läd
 	 */
 	public void setCategoryFormToMain() {
@@ -562,6 +522,53 @@ public class Clicker implements EntryPoint {
 		
 		mainPanel.clear();
 		mainPanel.add(cF);
+	}
+	
+	/**
+	 * Methode welche das Question-Formular in den Hauptbereich läd
+	 */
+	public void setQuestionFormToMain() {
+		qF = new QuestionForm(verwaltung);	
+		ltvm.setQuestionForm(qF);
+		
+		mainPanel.clear();
+		mainPanel.add(qF);
+	}
+
+	public void setChooseFormToMain() {
+		if (cqf != null) {
+			cqf.removeFromParent();
+		}
+		if (rf != null) {
+			rf.removeFromParent();
+			rf = null;
+		}
+		if (pqf != null) {
+			pqf.removeFromParent();
+			pqf = null;
+		}
+				
+		cqf = new ChooseQuizForm(verwaltung);
+		cqf.setClicker(this);
+		RootPanel.get().add(cqf);
+		cqf.ladenQuizze();
+	}
+	
+	public void setPlayQuizFormToMain(PlayQuizForm pqf) {
+		if (cqf != null) {
+			cqf.removeFromParent();
+		}
+		this.pqf = pqf;
+		RootPanel.get().add(pqf);
+		pqf.startQuiz();
+	}
+	
+	public void setResultsFormToMain(ResultsForm rf) {
+		pqf.removeFromParent();
+		this.rf = rf;
+		rf.setClicker(this);
+		pqf = null;
+		RootPanel.get().add(rf);
 	}
 
 	/**
@@ -699,7 +706,6 @@ public class Clicker implements EntryPoint {
 								
 						// Initialisierung des CellTrees
 						cellTree = new CellTree(atvm, "Root");
-						
 						// Anordnen des CellTrees
 						navi.add(cellTree);
 						
@@ -806,7 +812,7 @@ public class Clicker implements EntryPoint {
 						createDockLayoutPanel();
 						
 						// Initialisierung eines Objekts vom Typ "TreeViewModel"
-						ltvm = new LecturerTreeViewModel(verwaltung, report);
+						ltvm = new LecturerTreeViewModel(verwaltung);
 						
 						// Setzen einer Selbst-Referenz zur "TreeViewModel-Instanz"
 						ltvm.setClicker(Clicker.this);
@@ -825,11 +831,111 @@ public class Clicker implements EntryPoint {
 						
 						// DockLayOutPanel dem Body-html-Tag zuweisen
 						RootPanel.get().add(rlp);
+					}
+					
+				});
+				
+			}
+			
+		});
+	}
+	
+	public void addClickHandlerToESB() {
+		entryParticipantButton.addClickHandler(new ClickHandler() {
+						
+			public void onClick(ClickEvent event) {
+				entryVP.setVisible(false);
+				
+				authDB = new DialogBox();
+				authDB.setText("Teilnehmer-Authentifizierung!");
+				authDB.setAnimationEnabled(true);
+				
+				authDBVP = new VerticalPanel();
+				authDBGrid = new Grid(3,3);
+				authDBVP.add(authDBGrid);
+				
+				authDBUserLabel = new Label("HdM-Kürzel: ");
+				authDBUserTB = new TextBox();
+				authDBPWLabel = new Label("Passwort: ");
+				authDBPWTB = new PasswordTextBox();
+				authDBButton = new Button("OK");
+				
+				authDBGrid.setWidget(0, 0, authDBUserLabel);
+				authDBGrid.setWidget(0, 1, authDBUserTB);
+				authDBGrid.setWidget(1, 0, authDBPWLabel);
+				authDBGrid.setWidget(1, 1, authDBPWTB);
+				authDBGrid.setWidget(1, 2, authDBButton);
+				
+				authDBLabel = new Label();
+				authDBVP.add(authDBLabel);
+				
+				authDB.setWidget(authDBVP);
+				
+				authDB.center();
+				authDBUserTB.setFocus(true);
+				
+				addClickHandlerToSDBButton();
+				
+				authDBCloseButton = new Button("Close");
+				authDBCloseButton.addClickHandler(new ClickHandler() {
+
+					@Override
+					public void onClick(ClickEvent event) {
+						authDB.hide();
+						entryVP.setVisible(true);
+					}
+					
+				});
+				authDBGrid.setWidget(2, 0, authDBCloseButton);
+			}
+			
+		});
+	}
+	
+	public void addClickHandlerToSDBButton() {
+		authDBButton.addClickHandler(new ClickHandler() {
+
+			@Override
+			public void onClick(ClickEvent event) {
+				authDBUserTB.setEnabled(false);
+				authDBButton.setEnabled(false);
+				authDBPWTB.setEnabled(false);
+				
+				/*
+				 * Negative Authentifizierung
+				 */
+				/*
+				authDBUserTB.setText("");
+				authDBPWTB.setText("");
+				authDBLabel.setText("Anmeldung nicht erfolgreich");
+				
+				authDBUserTB.setEnabled(true);
+				authDBButton.setEnabled(true);
+				authDBPWTB.setEnabled(true);
+				*/
+				
+				verwaltung.signInParticipant("lz006", new AsyncCallback<Void>() {
+
+					@Override
+					public void onFailure(Throwable caught) {
+						Window.alert(caught.getMessage());
+						
+					}
+
+					@Override
+					public void onSuccess(Void result) {
+						authDBUserTB.setText("");
+						authDBPWTB.setText("");
+						authDB.hide();
+						
+						setChooseFormToMain();
 						
 					}
 					
 				});
 				
+				
+								
 			}
 			
 		});

@@ -127,6 +127,169 @@ public class QuestionMapper {
 		return questions;
 	}
 	
+	/**
+	 * Methode um eine beliebige Anzahl an Questions anhand einer Category aus der
+	 * DB auszulesen
+	 * 
+	 * @param	category 
+	 * @return	Vector mit Questions, die der Category zugeordnet sind
+	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
+	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
+	 */
+	public Vector<Question> findByCategory(Category cat) throws RuntimeException {
+			
+		//Einholen einer DB-Verbindung		
+		Connection con = DBConnection.connection();
+		ResultSet rs;
+		Vector<Question> questions = new Vector<Question>();
+		try{
+			// Ausführung des SQL-Querys
+			Statement stmt = con.createStatement();
+			String sql = "SELECT * FROM Question WHERE categoryid=" + cat.getId() + " AND Active = 1 ORDER BY questionbody";
+			rs = stmt.executeQuery(sql);
+			
+			// Erstellung des "Question-Vectors"
+			while(rs.next()){
+				Question question = new Question();
+				question.setId(rs.getInt("id"));
+				question.setQuestionBody(rs.getString("questionbody"));
+				if (rs.getInt("image") == 1) {
+					question.setImage(true);
+				} else {
+					question.setImage(false);
+				}
+				question.setCorrectAnswer(rs.getInt("correctAnswer"));
+				question.setSeverity(rs.getInt("severity"));
+				question.setAnswer1(rs.getString("Answer_1"));
+				question.setAnswer2(rs.getString("Answer_2"));
+				question.setAnswer3(rs.getString("Answer_3"));
+				question.setAnswer4(rs.getString("Answer_4"));
+				if (rs.getInt("Active") == 1) {
+					question.setActive(true);
+				} else {
+					question.setActive(false);
+				}
+				question.setCategoryID(rs.getInt("categoryid"));
+				questions.add(question);
+			}
+						
+		}
+		catch (SQLException e1) {
+			throw new RuntimeException("Datenbankbankproblem - qm fbk: " + e1.getMessage());				
+		}
+		
+		return questions;
+	}
+	
+	/**
+	 * Methode um eine beliebige Anzahl an Questions anhand einer Category
+	 * und Schwierigkeitsstufe aus der DB auszulesen
+	 * 
+	 * @param	category 
+	 * @return	Vector mit Questions, die der Category zugeordnet sind
+	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
+	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
+	 */
+	public Vector<Question> findByCategoryAndSeverity(Category cat, int severity) throws RuntimeException {
+			
+		//Einholen einer DB-Verbindung		
+		Connection con = DBConnection.connection();
+		ResultSet rs;
+		Vector<Question> questions = new Vector<Question>();
+		try{
+			// Ausführung des SQL-Querys
+			Statement stmt = con.createStatement();
+			String sql = "SELECT * FROM Question WHERE categoryid=" + cat.getId() + " AND Active=1 AND severity=" + severity + " ORDER BY questionbody";
+			rs = stmt.executeQuery(sql);
+			
+			// Erstellung des "Question-Vectors"
+			while(rs.next()){
+				Question question = new Question();
+				question.setId(rs.getInt("id"));
+				question.setQuestionBody(rs.getString("questionbody"));
+				if (rs.getInt("image") == 1) {
+					question.setImage(true);
+				} else {
+					question.setImage(false);
+				}
+				question.setCorrectAnswer(rs.getInt("correctAnswer"));
+				question.setSeverity(rs.getInt("severity"));
+				question.setAnswer1(rs.getString("Answer_1"));
+				question.setAnswer2(rs.getString("Answer_2"));
+				question.setAnswer3(rs.getString("Answer_3"));
+				question.setAnswer4(rs.getString("Answer_4"));
+				if (rs.getInt("Active") == 1) {
+					question.setActive(true);
+				} else {
+					question.setActive(false);
+				}
+				question.setCategoryID(rs.getInt("categoryid"));
+				questions.add(question);
+			}
+						
+		}
+		catch (SQLException e1) {
+			throw new RuntimeException("Datenbankbankproblem - qm fbk: " + e1.getMessage());				
+		}
+		
+		return questions;
+	}
+	
+	/**
+	 * Methode um eine beliebige Anzahl an Questions anhand eines Quizzes aus der
+	 * DB auszulesen
+	 * 
+	 * @param	quiz 
+	 * @return	Vector mit Questions, die dem Quiz zugeordnet sind
+	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
+	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
+	 */
+	public Vector<Question> findByQuiz(Quiz quiz) throws RuntimeException {
+			
+		//Einholen einer DB-Verbindung		
+		Connection con = DBConnection.connection();
+		ResultSet rs;
+		Vector<Question> questions = new Vector<Question>();
+		try{
+			// Ausführung des SQL-Querys
+			Statement stmt = con.createStatement();
+			String sql = "SELECT * FROM `hdm-clicker`.Question WHERE id IN (SELECT questionid "
+					+ "FROM `hdm-clicker`.NMTable_QQ WHERE quizid="+quiz.getId()+" AND quizversion="+quiz.getVersion()+");";
+			rs = stmt.executeQuery(sql);
+			
+			// Erstellung des "Question-Vectors"
+			while(rs.next()){
+				Question question = new Question();
+				question.setId(rs.getInt("id"));
+				question.setQuestionBody(rs.getString("questionbody"));
+				if (rs.getInt("image") == 1) {
+					question.setImage(true);
+				} else {
+					question.setImage(false);
+				}
+				question.setCorrectAnswer(rs.getInt("correctAnswer"));
+				question.setSeverity(rs.getInt("severity"));
+				question.setAnswer1(rs.getString("Answer_1"));
+				question.setAnswer2(rs.getString("Answer_2"));
+				question.setAnswer3(rs.getString("Answer_3"));
+				question.setAnswer4(rs.getString("Answer_4"));
+				if (rs.getInt("Active") == 1) {
+					question.setActive(true);
+				} else {
+					question.setActive(false);
+				}
+				question.setCategoryID(rs.getInt("categoryid"));
+				questions.add(question);
+			}
+						
+		}
+		catch (SQLException e1) {
+			throw new RuntimeException("Datenbankbankproblem - qm fbqz: " + e1.getMessage());				
+		}
+		
+		return questions;
+	}
+	
 	
 	/**
 	 * Methode um eine Question in der DB zu aktualisieren
@@ -234,7 +397,7 @@ public class QuestionMapper {
 	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
 	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
 	 */	
-	public Vector<Question> findAll() throws RuntimeException {
+	public Vector<Question> findAllActives() throws RuntimeException {
 				
 		Connection con = DBConnection.connection();
 		
@@ -243,7 +406,7 @@ public class QuestionMapper {
 		try{		
 			// Ausführung des SQL-Querys
 			Statement stmt = con.createStatement();
-			String sql = "SELECT * FROM Question ORDER BY questionbody;";
+			String sql = "SELECT * FROM Question WHERE Active = 1 ORDER BY questionbody;";
 			ResultSet rs = stmt.executeQuery(sql);
 			
 			while(rs.next()) {
@@ -361,6 +524,42 @@ public class QuestionMapper {
 		}
 		
 		return images;
+	}
+	
+	/**
+	 * Methode um ein Image aus der DB zu löschen
+	 * 
+	 * @param	question - Objekt dessen Image gelöscht werden soll
+	 * @throws	Bei der Kommunikation mit der DB kann es zu Komplikationen kommen,
+	 * 			die entstandene Exception wird an die aufrufende Methode weitergereicht
+	 */
+	public void deleteImage(Question question) throws RuntimeException {
+		
+		/* Eine Question wird nur dann gelöscht, wenn sie keine Referenz
+		 * auf ein Quiz oder Result besitzt, andernfalls wird als inaktiv
+		 * deklariert 
+		 */
+		
+		
+		Connection con = DBConnection.connection();
+		try {
+			Statement stmt = con.createStatement();
+			
+			// Auf Referenz in Results prüfen
+			
+			// Auf Referent in NNTable_QQ prüfen
+			
+						
+			// Löschen der Category-Entität
+			String sql = "DELETE FROM Images WHERE id = '"+question.getId()+"';";
+			stmt.executeUpdate(sql);
+			
+			// Question inaktiv setzen
+		}
+		catch (SQLException e1) {
+			throw new RuntimeException("Datenbankbankproblem - qm.deleteImage: " + e1.getMessage());
+		}
+		
 	}
 	
 
